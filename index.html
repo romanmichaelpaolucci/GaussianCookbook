@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Gaussian Cookbook - Statistical Recipes for Gaussian Processes</title>
+    <meta name="description" content="Comprehensive guide to Gaussian processes, fractional Brownian motion, Brownian bridge, and statistical simulation techniques.">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- MathJax for mathematical notation -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="static/css/main.css">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="static/favicon.svg">
+
+    <!-- Add Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <div class="logo-symbol">𝒢</div>
+                <span class="logo-text">Gaussian Cookbook</span>
+            </div>
+            <div class="nav-menu">
+                <a href="#home" class="nav-link active">Home</a>
+                <a href="#recipes" class="nav-link">Recipes</a>
+                <a href="#articles" class="nav-link">Articles</a>
+                <a href="#resources" class="nav-link">Resources</a>
+            </div>
+            <div class="nav-toggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="home" class="hero">
+        <div class="hero-background">
+            <div class="gaussian-curve"></div>
+            <div class="particles"></div>
+        </div>
+        <div class="hero-content">
+            <div class="hero-text">
+                <h1 class="hero-title">
+                    The Gaussian Cookbook
+                    <span class="subtitle">Recipes for simulating stochastic processes</span>
+                </h1>
+                <div class="hero-author">
+                    <div class="hero-headshot">
+                        <img src="static/img/roman_image.png" alt="Chef Roman Paolucci" class="headshot-img">
+                    </div>
+                    <div class="hero-author-text">
+                        with Chef Roman Paolucci,<br>Graduate Student at Columbia University
+                    </div>
+                </div>
+                <p class="hero-description">
+                    Master the art of simulating stochastic processes with comprehensive recipes for processes  
+                    including the Brownian brdige and fractional Brownian motion.
+                </p>
+                <div class="hero-buttons">
+                    <button class="btn btn-primary" onclick="scrollToSection('recipes')">
+                        Explore Recipes
+                    </button>
+                </div>
+            </div>
+            <div class="hero-visual">
+                <div class="math-preview">
+                    <div class="equation">
+                        \[X(t) = \int_0^t K(t,s) \, dW(s)\]
+                    </div>
+                    <div class="equation-caption">Stochastic Process Representation</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Recipes Section -->
+    <section id="recipes" class="chapters">
+        <div class="container">
+            <div class="section-header">
+                <h2>Recipes</h2>
+                <p>Essential methods for simulating Gaussian processes</p>
+            </div>
+            <div class="chapters-grid">
+                <div class="chapter-card">
+                    <div class="chapter-number">01</div>
+                    <h3>Brownian Motion</h3>
+                    <img src="static/img/brownian_motion.svg" alt="Brownian Motion" class="recipe-img">
+                    <p>The classical Wiener process, foundation of stochastic calculus and Gaussian process simulation.</p>
+                    <div class="chapter-topics">
+                        <span class="topic">Random Walks</span>
+                        <span class="topic">Markov Property</span>
+                        <span class="topic">Simulation Methods</span>
+                    </div>
+                    <a href="brownian-motion.html" class="btn btn-primary view-recipe-btn">View Recipe</a>
+                </div>
+                <div class="chapter-card">
+                    <div class="chapter-number">02</div>
+                    <h3>Brownian Bridge</h3>
+                    <img src="static/img/brownian_bridge.svg" alt="Brownian Bridge" class="recipe-img">
+                    <p>Conditioned Brownian motion that starts and ends at fixed values, useful for path-dependent simulations.</p>
+                    <div class="chapter-topics">
+                        <span class="topic">Conditioning</span>
+                        <span class="topic">Bridge Construction</span>
+                        <span class="topic">Applications</span>
+                    </div>
+                    <a href="brownian-bridge.html" class="btn btn-primary view-recipe-btn">View Recipe</a>
+                </div>
+                <div class="chapter-card">
+                    <div class="chapter-number">03</div>
+                    <h3>Fractional Brownian Motion</h3>
+                    <img src="static/img/fractional_brownian_motion.svg" alt="Fractional Brownian Motion" class="recipe-img">
+                    <p>Long-memory Gaussian process with tunable Hurst parameter for modeling persistence and roughness.</p>
+                    <div class="chapter-topics">
+                        <span class="topic">Hurst Exponent</span>
+                        <span class="topic">Self-Similarity</span>
+                        <span class="topic">Spectral Methods</span>
+                    </div>
+                    <button class="btn btn-primary view-recipe-btn" disabled style="background: var(--gray-300); color: var(--gray-600); cursor: not-allowed; border: none;">Coming Soon</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Articles Section -->
+    <section id="articles" class="articles">
+        <div class="container">
+            <div class="section-header">
+                <h2>Articles</h2>
+                <p>Selected research papers and preprints by Chef Roman Paolucci</p>
+            </div>
+            <div class="articles-grid">
+                <div class="article-card">
+                    <div class="article-meta">
+                        <span class="article-author" style="color: var(--primary-color); font-weight: 600;">Roman Paolucci</span>
+                        <span class="article-affil" style="margin-left: 1.2em;">Columbia University</span>
+                    </div>
+                    <div class="article-meta">
+                        <span class="article-date">June 30, 2025</span>
+                    </div>
+                    <h3 class="article-title">Recipes for simulating stochastic processes</h3>
+                    <p class="article-abstract">This note discusses the necessary steps to simulate a stochastic process with a desired covariance structure. In this context, I outline the Karhunen–Loéve theorem and provide intuition and general recipes to decompose a stochastic process by establishing the integral eigenvalue problem (continuous-time) or, equivalently, the covariance matrix diagonalization problem (discrete-time). I then apply these general recipes to a Brownian motion and Brownian bridge to numerically simulate paths.</p>
+                    <div class="article-keywords" style="font-size: 0.98rem; color: var(--gray-500); margin-bottom: 0.5em;">
+                        <b>Keywords:</b> Brownian motion, Brownian bridge, Stochastic processes, Simulation
+                    </div>
+                    <a href="https://papers.ssrn.com/sol3/papers.cfm?abstract_id=5332011" class="btn btn-secondary article-link" target="_blank" rel="noopener" style="margin-top: 0.2em;">View on SSRN</a>
+                    <div class="article-citation" style="font-size: 0.95rem; color: var(--gray-400); margin-top: 1em;">
+                        <b>Suggested Citation:</b><br>
+                        Paolucci, Roman, <i>Recipes for simulating stochastic processes</i> (June 30, 2025). Available at SSRN: <a href="https://papers.ssrn.com/sol3/papers.cfm?abstract_id=5332011" target="_blank" rel="noopener">https://papers.ssrn.com/sol3/papers.cfm?abstract_id=5332011</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Resources Section -->
+    <section id="resources" class="resources" style="background: var(--gray-100, #f6f8fa); padding: 3.5rem 0 3.5rem 0;">
+        <div class="container">
+            <div class="section-header">
+                <h2>Resources</h2>
+                <p>Connect with the project and explore more content</p>
+            </div>
+            <div class="resources-grid" style="display: flex; gap: 2.5rem; justify-content: center; flex-wrap: wrap; margin-top: 2.5rem;">
+                <!-- GitHub Card -->
+                <div class="resource-card" style="background: var(--gray-50, #fafbfc); border-radius: 14px; box-shadow: 0 2px 12px 0 rgba(0,0,0,0.04); padding: 2.1rem 2.2rem 1.7rem 2.2rem; min-width: 260px; max-width: 320px; text-align: center; display: flex; flex-direction: column; align-items: center;">
+                    <div style="font-size: 2.5rem; margin-bottom: 0.7em; color: #24292f;">
+                        <i class="fab fa-github"></i>
+                    </div>
+                    <h3 style="margin-bottom: 0.5em;">GitHub</h3>
+                    <p style="font-size: 1.05rem; color: var(--gray-600); margin-bottom: 1.2em;">Browse the source code, contribute, or star the project on GitHub.</p>
+                    <a href="https://github.com/romanmichaelpaolucci/GaussianCookbook" target="_blank" class="btn btn-primary" style="margin-top: auto;">View on GitHub</a>
+                </div>
+                <!-- YouTube Card -->
+                <div class="resource-card" style="background: var(--gray-50, #fafbfc); border-radius: 14px; box-shadow: 0 2px 12px 0 rgba(0,0,0,0.04); padding: 2.1rem 2.2rem 1.7rem 2.2rem; min-width: 260px; max-width: 320px; text-align: center; display: flex; flex-direction: column; align-items: center;">
+                    <div style="font-size: 2.5rem; margin-bottom: 0.7em; color: #ff0000;">
+                        <i class="fab fa-youtube"></i>
+                    </div>
+                    <h3 style="margin-bottom: 0.5em;">YouTube</h3>
+                    <p style="font-size: 1.05rem; color: var(--gray-600); margin-bottom: 1.2em;">Watch tutorials, lectures, and simulations on the Quant Guild YouTube channel.</p>
+                    <a href="https://youtube.com/@quantguild" target="_blank" class="btn btn-primary" style="margin-top: auto;">Visit Channel</a>
+                </div>
+                <!-- SSRN Card -->
+                <div class="resource-card" style="background: var(--gray-50, #fafbfc); border-radius: 14px; box-shadow: 0 2px 12px 0 rgba(0,0,0,0.04); padding: 2.1rem 2.2rem 1.7rem 2.2rem; min-width: 260px; max-width: 320px; text-align: center; display: flex; flex-direction: column; align-items: center;">
+                    <div style="font-size: 2.5rem; margin-bottom: 0.7em; color: #1a237e;">
+                        <i class="fas fa-scroll"></i>
+                    </div>
+                    <h3 style="margin-bottom: 0.5em;">SSRN</h3>
+                    <p style="font-size: 1.05rem; color: var(--gray-600); margin-bottom: 1.2em;">Read research papers and preprints by Roman Paolucci on SSRN.</p>
+                    <a href="https://papers.ssrn.com/sol3/cf_dev/AbsByAuth.cfm?per_id=4862816" target="_blank" class="btn btn-primary" style="margin-top: auto;">View on SSRN</a>
+                </div>
+            </div>
+            <!-- New row for Medium, Discord, LinkedIn -->
+            <div class="resources-grid" style="display: flex; gap: 2.5rem; justify-content: center; flex-wrap: wrap; margin-top: 2.5rem;">
+                <!-- Medium Card -->
+                <div class="resource-card" style="background: var(--gray-50, #fafbfc); border-radius: 14px; box-shadow: 0 2px 12px 0 rgba(0,0,0,0.04); padding: 2.1rem 2.2rem 1.7rem 2.2rem; min-width: 260px; max-width: 320px; text-align: center; display: flex; flex-direction: column; align-items: center;">
+                    <div style="font-size: 2.5rem; margin-bottom: 0.7em; color: #00ab6c;">
+                        <i class="fab fa-medium"></i>
+                    </div>
+                    <h3 style="margin-bottom: 0.5em;">Medium</h3>
+                    <p style="font-size: 1.05rem; color: var(--gray-600); margin-bottom: 1.2em;">Read articles and essays on stochastic processes and simulation on Medium.</p>
+                    <a href="https://medium.com/@quantguild" target="_blank" class="btn btn-primary" style="margin-top: auto;">Read on Medium</a>
+                </div>
+                <!-- Discord Card -->
+                <div class="resource-card" style="background: var(--gray-50, #fafbfc); border-radius: 14px; box-shadow: 0 2px 12px 0 rgba(0,0,0,0.04); padding: 2.1rem 2.2rem 1.7rem 2.2rem; min-width: 260px; max-width: 320px; text-align: center; display: flex; flex-direction: column; align-items: center;">
+                    <div style="font-size: 2.5rem; margin-bottom: 0.7em; color: #5865F2;">
+                        <i class="fab fa-discord"></i>
+                    </div>
+                    <h3 style="margin-bottom: 0.5em;">Discord</h3>
+                    <p style="font-size: 1.05rem; color: var(--gray-600); margin-bottom: 1.2em;">Join the Quant Guild community for discussions and Q&A on Discord.</p>
+                    <a href="https://discord.com/invite/MJ4FU2c6c3" target="_blank" class="btn btn-primary" style="margin-top: auto;">Join Discord</a>
+                </div>
+                <!-- LinkedIn Card -->
+                <div class="resource-card" style="background: var(--gray-50, #fafbfc); border-radius: 14px; box-shadow: 0 2px 12px 0 rgba(0,0,0,0.04); padding: 2.1rem 2.2rem 1.7rem 2.2rem; min-width: 260px; max-width: 320px; text-align: center; display: flex; flex-direction: column; align-items: center;">
+                    <div style="font-size: 2.5rem; margin-bottom: 0.7em; color: #0077b5;">
+                        <i class="fab fa-linkedin"></i>
+                    </div>
+                    <h3 style="margin-bottom: 0.5em;">LinkedIn</h3>
+                    <p style="font-size: 1.05rem; color: var(--gray-600); margin-bottom: 1.2em;">Connect with Roman Paolucci and the Quant Guild on LinkedIn.</p>
+                    <a href="https://www.linkedin.com/in/rmp99/" target="_blank" class="btn btn-primary" style="margin-top: auto;">Connect on LinkedIn</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <div class="footer-logo">
+                        <div class="logo-symbol">𝒢</div>
+                        <span>The Gaussian Cookbook</span>
+                    </div>
+                    <p>Mastering Gaussian processes through practical recipes and interactive learning with Chef Roman Paolucci.</p>
+                    <hr style="margin: 0.7em 0 0.5em 0; border: none; border-top: 1.5px solid var(--gray-200); width: 90%;">
+                    <div style="margin-top: 0.2em; margin-bottom: 0.5em;">
+                        <span style="font-size: 1.01rem; font-weight: 500; color: var(--primary-color);">Subscribers</span><br>
+                        <div style="margin-top: 1em; text-align: left; position: relative; width: 180px; height: 63px;"> <!-- Adjust width/height to match scaled iframe -->
+                            <iframe height="90px" frameborder="0" src="https://socialcounts.org/youtube-live-subscriber-count/UCW1svfGxG4ADnbc1HCH6dqA/embed" allowfullscreen="" style="position: relative; z-index: 1; transform: scale(0.65); transform-origin: left top; border-radius: 16px; overflow: hidden;"></iframe>
+                            <a href="https://youtube.com/@quantguild" target="_blank" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 2; display: block;"></a>
+                        </div>    
+                    </div>
+                </div>
+                <div class="footer-section">
+                    <h4>Quick Links</h4>
+                    <ul>
+                        <li><a href="https://github.com/romanmichaelpaolucci/GaussianCookbook" target="_blank"><i class="fab fa-github" style="color: #fff;"></i> GitHub</a></li>
+                        <li><a href="https://youtube.com/@quantguild" target="_blank"><i class="fab fa-youtube" style="color: #fff;"></i> YouTube</a></li>
+                        <li><a href="https://papers.ssrn.com/sol3/cf_dev/AbsByAuth.cfm?per_id=4862816" target="_blank"><i class="fas fa-scroll" style="color: #fff;"></i> SSRN</a></li>
+                        <li><a href="https://medium.com/@quantguild" target="_blank"><i class="fab fa-medium" style="color: #fff;"></i> Medium</a></li>
+                        <li><a href="https://discord.com/invite/MJ4FU2c6c3" target="_blank"><i class="fab fa-discord" style="color: #fff;"></i> Discord</a></li>
+                        <li><a href="https://www.linkedin.com/in/rmp99/" target="_blank"><i class="fab fa-linkedin" style="color: #fff;"></i> LinkedIn</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Recipes</h4>
+                    <ul>
+                        <li><a href="brownian-motion.html">Brownian Motion</a></li>
+                        <li><a href="brownian-bridge.html">Brownian Bridge</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 Quant Guild. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script src="static/js/main.js"></script>
+</body>
+</html> 

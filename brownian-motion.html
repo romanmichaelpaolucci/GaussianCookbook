@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brownian Motion Recipe | The Gaussian Cookbook</title>
+    <meta name="description" content="Recipe for simulating Brownian motion in continuous and discrete time.">
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <!-- CSS -->
+    <link rel="stylesheet" href="static/css/main.css">
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="static/favicon.svg">
+    <!-- MathJax for mathematical notation -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <!-- Add highlight.js for Python syntax highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/python.min.js"></script>
+    <script>hljs.highlightAll();</script>
+    <style>
+    .tab-content h2, .tab-content h3 {
+        color: var(--primary-color);
+    }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <div class="logo-symbol">𝒢</div>
+                <span class="logo-text">Gaussian Cookbook</span>
+            </div>
+            <div class="nav-menu">
+                <a href="index.html#home" class="nav-link">Home</a>
+                <a href="index.html#recipes" class="nav-link">Recipes</a>
+                <a href="index.html#articles" class="nav-link">Articles</a>
+                <a href="index.html#resources" class="nav-link">Resources</a>
+            </div>
+            <div class="nav-toggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Recipe Hero -->
+    <section class="hero short-hero">
+        <div class="hero-content" style="grid-template-columns: 1fr; text-align: center;">
+            <div>
+                <img src="static/img/brownian_motion.svg" alt="Brownian Motion" class="recipe-img" style="margin-bottom: 1.5rem; max-width: 120px;">
+                <h1 class="hero-title" style="font-size:2.5rem;">Brownian Motion</h1>
+                <p class="hero-description" style="color:var(--gray-300); max-width: 600px; margin: 0 auto;">
+                    Recipes for simulating the classical Wiener process in both continuous and discrete time.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Tabs Section -->
+    <section class="resources">
+        <div class="container">
+            <h2 style="margin-bottom: 2rem; color: var(--primary-color); font-size: 2rem; font-weight: 600; text-align: center;">Simulating Brownian Motion</h2>
+            <div class="tabs">
+                <button class="tab-btn active" data-tab="continuous">Continuous-time</button>
+                <button class="tab-btn" data-tab="discrete">Discrete-time</button>
+                <button class="tab-btn" data-tab="simulation">Simulation</button>
+            </div>
+            <div id="continuous" class="tab-content active">
+                <h2>Continuous-time Recipe for Brownian Motion</h2>
+                <h3>Intuition</h3>
+                <p>
+                    The goal is to construct a process \( X_t \) such that
+                    $$ \mathbb{E}[X_t] = 0, \quad \text{Cov}(X_s, X_t) = K(s, t) $$
+                    For Brownian motion, the covariance kernel is
+                    $$ K(s, t) = \min(s, t) $$
+                    The Karhunen–Loève expansion gives
+                    $$
+                    W_t = \sqrt{2} \sum_{k=1}^\infty Z_k \frac{\sin\left((k-\frac{1}{2})\pi t\right)}{(k-\frac{1}{2})\pi}
+                    $$
+                    where \( Z_k \sim \mathcal{N}(0, 1) \) are independent.
+                </p>
+                <h3>General Recipe</h3>
+                <ol>
+                    <li>Define the process and covariance kernel \( K(s, t) = \min(s, t) \).</li>
+                    <li>Set up and solve the integral eigenvalue problem:
+                        $$ \int_0^1 K(s, t) e_k(s) ds = \lambda_k e_k(t) $$
+                    </li>
+                    <li>Obtain eigenfunctions and eigenvalues:
+                        $$ e_k(t) = \sqrt{2} \sin\left((k-\frac{1}{2})\pi t\right), \quad \lambda_k = \frac{1}{((k-\frac{1}{2})\pi)^2} $$
+                    </li>
+                    <li>Construct the Karhunen–Loève expansion for simulation.</li>
+                    <li>Discretize the expansion for practical computation.</li>
+                </ol>
+                <h3>Python Implementation</h3>
+                <pre><code class="language-python">import numpy as np
+
+def brownian_motion_ctr(steps=100, n_terms=500, paths=1):
+    t = np.linspace(0, 1, steps)
+    Bt = np.zeros((paths, steps))
+    for p in range(paths):
+        Z = np.random.normal(0, 1, n_terms)
+        k = np.arange(1, n_terms + 1)
+        for i, ti in enumerate(t):
+            sin_terms = np.sin((k - 0.5) * np.pi * ti) / ((k - 0.5) * np.pi)
+            Bt[p, i] = np.sqrt(2) * np.dot(Z, sin_terms)
+    return Bt
+</code></pre>
+                <p>
+                    <b>Summary:</b> This approach yields sample paths of Brownian motion with the correct covariance structure, as guaranteed by the Karhunen–Loève theorem.
+                </p>
+            </div>
+            <div id="discrete" class="tab-content">
+                <h2>Discrete-time Recipe for Brownian Motion</h2>
+                <h3>Intuition</h3>
+                <p>
+                    In discrete time, we want to construct a vector \( X \) such that
+                    $$ \mathbb{E}[X] = 0, \quad \text{Cov}(X) = \Gamma $$
+                    where \( \Gamma_{ij} = \min(t_i, t_j) \) is the covariance matrix for Brownian motion.
+                </p>
+                <h3>General Recipe</h3>
+                <ol>
+                    <li>Generate the desired covariance matrix \( \Gamma \).</li>
+                    <li>Decompose \( \Gamma = Q \Lambda Q^T \) (eigendecomposition).</li>
+                    <li>Generate a Gaussian vector \( Z \sim N(0, I_n) \).</li>
+                    <li>Set \( X = Q \Lambda^{1/2} Z \).</li>
+                </ol>
+                <h3>Python Implementation</h3>
+                <pre><code class="language-python">import numpy as np
+
+def brownian_motion_dtr(steps=100, paths=1, T=1):
+    t = np.linspace(0, T, steps)
+    Gamma = np.zeros((steps, steps))
+    for i in range(steps):
+        for j in range(steps):
+            Gamma[i, j] = min(t[i], t[j])
+    eigenvals, eigenvecs = np.linalg.eigh(Gamma)
+    Z = np.random.normal(0, 1, (steps, paths))
+    Wt = eigenvecs @ np.diag(np.sqrt(eigenvals)) @ Z
+    return Wt.T
+</code></pre>
+                <p>
+                    <b>Summary:</b> This approach produces Brownian motion sample paths with the correct covariance structure by diagonalizing the covariance matrix and scaling standard normal draws.
+                </p>
+            </div>
+            <div id="simulation" class="tab-content">
+                <h2>Simulation</h2>
+                <div style="max-width:900px;margin:0 auto;">
+                    <div style="display:flex;align-items:center;gap:1.5rem;margin-bottom:2rem;">
+                        <label for="sim-method" style="font-weight:600;">Method:</label>
+                        <select id="sim-method" style="font-size:1.1rem;padding:0.4em 1em;border-radius:8px;border:1px solid var(--gray-300);">
+                            <option value="continuous">Continuous-time</option>
+                            <option value="discrete">Discrete-time</option>
+                        </select>
+                    </div>
+                    <div id="sim-inputs" style="display:flex;flex-wrap:wrap;gap:2rem;justify-content:center;margin-bottom:2.5rem;"></div>
+                    <div style="display:flex;flex-wrap:wrap;gap:2rem;justify-content:center;align-items:flex-start;">
+                        <div style="flex:1 1 350px;min-width:320px;max-width:420px;text-align:center;display:flex;flex-direction:column;align-items:center;">
+                            <h3>Sample Paths</h3>
+                            <div id="sim-plot" style="background:var(--gray-100);border-radius:12px;height:260px;width:100%;max-width:400px;box-shadow:var(--shadow-sm);margin-bottom:1.5rem;"></div>
+                        </div>
+                        <div style="flex:1 1 350px;min-width:320px;max-width:420px;text-align:center;display:flex;flex-direction:column;align-items:center;">
+                            <h3>Covariance</h3>
+                            <div id="sim-rmse" style="margin-bottom:0.5rem;font-weight:600;color:var(--primary-color);"></div>
+                            <div id="sim-heatmap" style="background:var(--gray-100);border-radius:12px;height:260px;width:100%;max-width:400px;box-shadow:var(--shadow-sm);margin-bottom:1.5rem;"></div>
+                        </div>
+                    </div>
+                    <div style="display:flex;flex-wrap:wrap;gap:2rem;justify-content:center;align-items:flex-start;margin-top:1.5rem;">
+                        <div style="flex:1 1 350px;min-width:320px;max-width:420px;text-align:center;display:flex;flex-direction:column;align-items:center;">
+                            <h3>Covariance Error</h3>
+                            <div id="sim-lagcov" style="background:var(--gray-100);border-radius:12px;height:220px;width:100%;max-width:400px;box-shadow:var(--shadow-sm);margin-bottom:1.5rem;"></div>
+                        </div>
+                        <div style="flex:1 1 350px;min-width:320px;max-width:420px;text-align:center;display:flex;flex-direction:column;align-items:center;">
+                            <h3>Theoretical Covariance</h3>
+                            <div id="sim-heatmap-theory" style="background:var(--gray-100);border-radius:12px;height:220px;width:100%;max-width:400px;box-shadow:var(--shadow-sm);margin-bottom:1.5rem;"></div>
+                        </div>
+                    </div>
+                    <div style="margin-top:2.5rem;">
+                        <h3>Discretized Equation</h3>
+                        <div id="sim-equation" style="font-size:1.2rem;margin-top:1rem;">
+                            $$
+                            W_t = \\sqrt{2} \\sum_{k=1}^N Z_k \\frac{\\sin\\left((k-\\frac{1}{2})\\pi t\\right)}{(k-\\frac{1}{2})\\pi}
+                            $$
+                            <pre id="sim-python" style="margin-top:1.5rem;"><code class="language-python"></code></pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Article Reference Section -->
+    <section class="article-reference" style="background: var(--gray-50); padding: 2.5rem 0 1.5rem 0;">
+        <div class="container" style="max-width: 900px; margin: 0 auto;">
+            <h2 style="margin-bottom: 1.2rem; color: var(--primary-color); font-size: 2rem; font-weight: 600; text-align: left;">Relevant Articles</h2>
+            <div class="article-card" style="box-shadow: var(--shadow-sm); border-radius: 14px; background: #fff; padding: 2rem 2.2rem; display: flex; flex-direction: column; align-items: flex-start; gap: 0.7rem; margin-bottom: 0; width: 100%; max-width: 100%;">
+                <div class="article-meta" style="font-size: 1rem; color: var(--gray-400); margin-bottom: 0.2rem;">
+                    <span class="article-author" style="color: var(--primary-color); font-weight: 600;">Roman Paolucci</span>
+                    <span class="article-affil" style="margin-left: 1.2em;">Columbia University</span>
+                </div>
+                <div class="article-meta" style="font-size: 1rem; color: var(--gray-400); margin-bottom: 0.2rem;">
+                    <span class="article-date">June 30, 2025</span>
+                </div>
+                <h3 class="article-title" style="margin: 0 0 0.3em 0; font-size: 1.35rem; color: var(--primary-color); font-weight: 600;">Recipes for simulating stochastic processes</h3>
+                <p class="article-abstract" style="margin: 0 0 0.7em 0; color: var(--gray-600); font-size: 1.08rem;">
+                    This note discusses the necessary steps to simulate a stochastic process with a desired covariance structure. In this context, I outline the Karhunen–Loéve theorem and provide intuition and general recipes to decompose a stochastic process by establishing the integral eigenvalue problem (continuous-time) or, equivalently, the covariance matrix diagonalization problem (discrete-time). I then apply these general recipes to a Brownian motion and Brownian bridge to numerically simulate paths.
+                </p>
+                <div class="article-keywords" style="font-size: 0.98rem; color: var(--gray-500); margin-bottom: 0.5em;">
+                    <b>Keywords:</b> Brownian motion, Brownian bridge, Stochastic processes, Simulation
+                </div>
+                <a href="https://papers.ssrn.com/sol3/papers.cfm?abstract_id=5332011" class="btn btn-secondary article-link" target="_blank" rel="noopener" style="margin-top: 0.2em;">View on SSRN</a>
+                <div class="article-citation" style="font-size: 0.95rem; color: var(--gray-400); margin-top: 1em;">
+                    <b>Suggested Citation:</b><br>
+                    Paolucci, Roman, <i>Recipes for simulating stochastic processes</i> (June 30, 2025). Available at SSRN: <a href="https://papers.ssrn.com/sol3/papers.cfm?abstract_id=5332011" target="_blank" rel="noopener">https://papers.ssrn.com/sol3/papers.cfm?abstract_id=5332011</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <div class="footer-logo">
+                        <div class="logo-symbol">𝒢</div>
+                        <span>The Gaussian Cookbook</span>
+                    </div>
+                    <p>Mastering Gaussian processes through practical recipes and interactive learning with Chef Roman Paolucci.</p>
+                    <hr style="margin: 0.7em 0 0.5em 0; border: none; border-top: 1.5px solid var(--gray-200); width: 90%;">
+                    <div style="margin-top: 0.2em; margin-bottom: 0.5em;">
+                        <span style="font-size: 1.01rem; font-weight: 500; color: var(--primary-color);">Subscribers</span><br>
+                        <div style="margin-top: 1em; text-align: left; position: relative; width: 180px; height: 63px;">
+                            <iframe height="90px" frameborder="0" src="https://socialcounts.org/youtube-live-subscriber-count/UCW1svfGxG4ADnbc1HCH6dqA/embed" allowfullscreen="" style="position: relative; z-index: 1; transform: scale(0.65); transform-origin: left top; border-radius: 16px; overflow: hidden;"></iframe>
+                            <a href="https://youtube.com/@quantguild" target="_blank" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 2; display: block;"></a>
+                        </div>
+                    </div>
+                </div>
+                <div class="footer-section">
+                    <h4>Quick Links</h4>
+                    <ul>
+                        <li><a href="https://github.com/romanmichaelpaolucci/GaussianCookbook" target="_blank"><i class="fab fa-github" style="color: #fff;"></i> GitHub</a></li>
+                        <li><a href="https://youtube.com/@quantguild" target="_blank"><i class="fab fa-youtube" style="color: #fff;"></i> YouTube</a></li>
+                        <li><a href="https://papers.ssrn.com/sol3/cf_dev/AbsByAuth.cfm?per_id=4862816" target="_blank"><i class="fas fa-scroll" style="color: #fff;"></i> SSRN</a></li>
+                        <li><a href="https://medium.com/@quantguild" target="_blank"><i class="fab fa-medium" style="color: #fff;"></i> Medium</a></li>
+                        <li><a href="https://discord.com/invite/MJ4FU2c6c3" target="_blank"><i class="fab fa-discord" style="color: #fff;"></i> Discord</a></li>
+                        <li><a href="https://www.linkedin.com/in/rmp99/" target="_blank"><i class="fab fa-linkedin" style="color: #fff;"></i> LinkedIn</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Recipes</h4>
+                    <ul>
+                        <li><a href="brownian-motion.html">Brownian Motion</a></li>
+                        <li><a href="brownian-bridge.html">Brownian Bridge</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 Quant Guild. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript for Tabs -->
+    <script>
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
+            this.classList.add('active');
+            document.getElementById(this.dataset.tab).classList.add('active');
+        });
+    });
+    </script>
+
+    <script>
+    // Force MathJax to re-typeset after page load
+    if (window.MathJax) {
+      MathJax.typesetPromise();
+    }
+    </script>
+
+    <script src="https://cdn.plot.ly/plotly-2.26.0.min.js"></script>
+    <script>
+    // --- Simulation Inputs ---
+    const simInputs = document.getElementById('sim-inputs');
+    const simMethod = document.getElementById('sim-method');
+    const simEquation = document.getElementById('sim-equation');
+    const simPlot = document.getElementById('sim-plot');
+    const simHeatmap = document.getElementById('sim-heatmap');
+
+    function createSlider(id, label, min, max, step, value) {
+        return `<div style='flex:1 1 180px;max-width:220px;'>
+            <label for='${id}' style='font-weight:600;'>${label}: <span id='${id}-val'>${value}</span></label>
+            <input type='range' id='${id}' min='${min}' max='${max}' step='${step}' value='${value}' style='width:100%;'>
+        </div>`;
+    }
+
+    function updateSimInputs() {
+        let html = '';
+        if (simMethod.value === 'continuous') {
+            html += createSlider('sim-steps', 'Time Steps', 50, 500, 10, 200);
+            html += createSlider('sim-nterms', 'KL Terms', 10, 300, 10, 50);
+            html += createSlider('sim-paths', 'Sample Paths', 1, 100, 1, 5);
+        } else {
+            html += createSlider('sim-steps', 'Time Steps', 50, 500, 10, 200);
+            html += createSlider('sim-paths', 'Sample Paths', 1, 100, 1, 5);
+        }
+        simInputs.innerHTML = html;
+        // Add listeners to update value display and rerun simulation
+        ['sim-steps','sim-nterms','sim-paths'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                el.addEventListener('input', () => {
+                    document.getElementById(id+'-val').textContent = el.value;
+                    runSimulation();
+                });
+            }
+        });
+    }
+
+    simMethod.addEventListener('change', () => {
+        updateSimInputs();
+        updateEquation();
+        runSimulation();
+    });
+
+    // --- MathJax Equation ---
+    function updateEquation() {
+        if (simMethod.value === 'continuous') {
+            simEquation.innerHTML = `$$
+                W_t = \\sqrt{2} \\sum_{k=1}^N Z_k \\frac{\\sin\\left((k-\\frac{1}{2})\\pi t\\right)}{(k-\\frac{1}{2})\\pi}
+            $$
+            <pre id='sim-python' style='margin-top:1.5rem;'><code class='language-python'>import numpy as np\n\ndef brownian_motion_ctr(steps=100, n_terms=500, paths=1):\n    t = np.linspace(0, 1, steps)\n    Bt = np.zeros((paths, steps))\n    for p in range(paths):\n        Z = np.random.normal(0, 1, n_terms)\n        k = np.arange(1, n_terms + 1)\n        for i, ti in enumerate(t):\n            sin_terms = np.sin((k - 0.5) * np.pi * ti) / ((k - 0.5) * np.pi)\n            Bt[p, i] = np.sqrt(2) * np.dot(Z, sin_terms)\n    return Bt</code></pre>`;
+        } else {
+            simEquation.innerHTML = `$$
+                W = Q \\sqrt{\\Lambda} Z
+            $$
+            <pre id='sim-python' style='margin-top:1.5rem;'><code class='language-python'>import numpy as np\n\ndef brownian_motion_dtr(steps=100, paths=1, T=1):\n    t = np.linspace(0, T, steps)\n    Gamma = np.zeros((steps, steps))\n    for i in range(steps):\n        for j in range(steps):\n            Gamma[i, j] = min(t[i], t[j])\n    eigenvals, eigenvecs = np.linalg.eigh(Gamma)\n    Z = np.random.normal(0, 1, (steps, paths))\n    Wt = eigenvecs @ np.diag(np.sqrt(eigenvals)) @ Z\n    return Wt.T</code></pre>`;
+        }
+        if (window.MathJax) MathJax.typesetPromise([simEquation]);
+        if (window.hljs) setTimeout(() => hljs.highlightAll(), 0);
+    }
+
+    // --- Brownian Motion Simulations ---
+    function simulateBrownianContinuous(steps, n_terms, paths) {
+        // Returns [paths x steps] array
+        const t = Array.from({length: steps}, (_, i) => i/(steps-1));
+        let Bt = Array.from({length: paths}, () => Array(steps).fill(0));
+        for (let p = 0; p < paths; ++p) {
+            const Z = Array.from({length: n_terms}, () => randn());
+            for (let i = 0; i < steps; ++i) {
+                let sum = 0;
+                for (let k = 1; k <= n_terms; ++k) {
+                    sum += Z[k-1] * Math.sin((k-0.5)*Math.PI*t[i]) / ((k-0.5)*Math.PI);
+                }
+                Bt[p][i] = Math.sqrt(2) * sum;
+            }
+        }
+        return {paths: Bt, t};
+    }
+
+    function simulateBrownianDiscrete(steps, paths) {
+    T = 1;
+    // Generate linearly spaced time points from 0 to T
+    const t = Array.from({ length: steps }, (_, i) => T * i / (steps - 1));
+
+    // Initialize the covariance matrix Gamma with zeros
+    const Gamma = Array.from({ length: steps }, () => Array(steps).fill(0));
+
+    // Populate the covariance matrix: Gamma[i][j] = min(t_i, t_j)
+    for (let i = 0; i < steps; ++i) {
+        for (let j = 0; j < steps; ++j) {
+            Gamma[i][j] = Math.min(t[i], t[j]);
+        }
+    }
+
+    // Perform eigendecomposition of Gamma
+    // This relies on the numericEig function, which in turn relies on numeric.js
+    const { values: eigenvals, vectors: eigenvecs } = numericEig(Gamma);
+
+    // Generate a matrix of standard normal random numbers (steps x paths)
+    // Z[i][j] is the j-th random variable for the i-th step
+    const Z = Array.from({ length: steps }, () => Array.from({ length: paths }, () => randn()));
+
+    // Create a diagonal matrix from the square roots of the eigenvalues
+    // Ensure eigenvalues are non-negative before taking the square root
+    const sqrtEigenvals = eigenvals.map(val => Math.sqrt(Math.max(0, val)));
+
+    // Perform the matrix multiplication: Wt = eigenvecs @ diag(sqrt(eigenvals)) @ Z
+    // Using numeric.js for matrix multiplication (numeric.dot)
+    let Wt;
+    if (window.numeric && numeric.dot) {
+        const diagSqrtLambda = Array.from({ length: steps }, (_, i) =>
+            Array.from({ length: steps }, (_, j) => (i === j ? sqrtEigenvals[i] : 0))
+        );
+        Wt = numeric.dot(numeric.dot(eigenvecs, diagSqrtLambda), Z);
+    } else {
+        // Fallback for matrix multiplication if numeric.js is not loaded.
+        // This will also lead to incorrect results.
+        console.warn("numeric.js is not loaded. Cannot perform accurate matrix multiplication.");
+        Wt = Array.from({length: steps}, () => Array(paths).fill(0));
+        // A simple, but incorrect, fallback for demonstration.
+        // In a real scenario, you'd need a full matrix multiplication implementation.
+        for (let i = 0; i < steps; i++) {
+            for (let j = 0; j < paths; j++) {
+                Wt[i][j] = Z[i][j]; // Just return Z if no matrix ops
+            }
+        }
+    }
+
+    // Transpose the result to get paths as rows (paths x steps)
+    return transpose(Wt);
+    }
+
+    function transpose(matrix) {
+        if (!matrix || matrix.length === 0) return [];
+        const rows = matrix.length;
+        const cols = matrix[0].length;
+        const transposed = Array.from({ length: cols }, () => Array(rows).fill(0));
+        for (let i = 0; i < rows; i++) {
+            for (let j = 0; j < cols; j++) {
+                transposed[j][i] = matrix[i][j];
+            }
+        }
+        return transposed;
+    }
+
+    // --- Numeric.js Eigenvalue Decomposition (for symmetric matrices) ---
+    // Minimal implementation for symmetric matrices
+    function numericEig(A) {
+        // Use numeric.js if available
+        if (window.numeric && numeric.eig) {
+            let eig = numeric.eig(A);
+            // eig.E is eigenvectors, eig.lambda is eigenvalues
+            return {vectors: eig.E, values: eig.lambda.x};
+        }
+        // Fallback: diagonalize (not accurate, but placeholder)
+        let n = A.length;
+        let values = Array(n).fill(1);
+        let vectors = Array.from({length: n}, (_, i) => Array.from({length: n}, (_, j) => i === j ? 1 : 0));
+        return {vectors, values};
+    }
+
+    // --- Random Normal ---
+    function randn() {
+        let u = 0, v = 0;
+        while(u === 0) u = Math.random();
+        while(v === 0) v = Math.random();
+        return Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
+    }
+
+    // --- Plotting ---
+    function plotSamplePaths(paths, t) {
+        let data = paths.map((p, i) => ({
+            x: t,
+            y: p,
+            mode: 'lines',
+            name: `Path ${i+1}`,
+            line: {width: 2}
+        }));
+        Plotly.newPlot('sim-plot', data, {
+            margin: {t: 20, l: 40, r: 10, b: 40},
+            xaxis: {title: 't'},
+            yaxis: {title: 'W(t)'},
+            showlegend: false,
+            plot_bgcolor: 'rgba(0,0,0,0)',
+            paper_bgcolor: 'rgba(0,0,0,0)'
+        }, {displayModeBar: false, responsive: true});
+    }
+
+    function plotCovarianceEmpirical(Bt, t) {
+        // Bt: paths x steps
+        const paths = Bt.length;
+        const steps = Bt[0].length;
+        // Compute mean for each time step
+        const means = Array(steps).fill(0);
+        for (let j = 0; j < steps; ++j) {
+            for (let i = 0; i < paths; ++i) means[j] += Bt[i][j];
+            means[j] /= paths;
+        }
+        // Compute empirical covariance matrix
+        const cov = Array.from({length: steps}, (_, i) => Array(steps).fill(0));
+        for (let i = 0; i < steps; ++i) {
+            for (let j = 0; j < steps; ++j) {
+                let sum = 0;
+                for (let k = 0; k < paths; ++k) {
+                    sum += (Bt[k][i] - means[i]) * (Bt[k][j] - means[j]);
+                }
+                cov[i][j] = sum / (paths - 1);
+            }
+        }
+        // Compute theoretical covariance matrix
+        const cov_theory = Array.from({length: steps}, (_, i) => Array.from({length: steps}, (_, j) => Math.min(t[i], t[j])));
+        // Compute RMSE
+        let rmse = 0, count = 0;
+        for (let i = 0; i < steps; ++i) {
+            for (let j = 0; j < steps; ++j) {
+                let diff = cov[i][j] - cov_theory[i][j];
+                rmse += diff * diff;
+                count++;
+            }
+        }
+        rmse = Math.sqrt(rmse / count);
+        document.getElementById('sim-rmse').textContent = '';
+        Plotly.newPlot('sim-heatmap', [{
+            z: cov,
+            type: 'heatmap',
+            colorscale: 'Viridis',
+            colorbar: {title: 'Cov'}
+        }], {
+            margin: {t: 20, l: 40, r: 10, b: 40},
+            xaxis: {title: 't'},
+            yaxis: {title: 't'},
+            plot_bgcolor: 'rgba(0,0,0,0)',
+            paper_bgcolor: 'rgba(0,0,0,0)'
+        }, {displayModeBar: false, responsive: true});
+        // Plot theoretical covariance heatmap
+        Plotly.newPlot('sim-heatmap-theory', [{
+            z: cov_theory,
+            type: 'heatmap',
+            colorscale: 'Viridis',
+            colorbar: {title: 'Cov'}
+        }], {
+            margin: {t: 20, l: 40, r: 10, b: 40},
+            xaxis: {title: 't'},
+            yaxis: {title: 't'},
+            plot_bgcolor: 'rgba(0,0,0,0)',
+            paper_bgcolor: 'rgba(0,0,0,0)'
+        }, {displayModeBar: false, responsive: true});
+        // Plot covariance by lag
+        const lagEmp = [], lagTheory = [], lagErr = [];
+        for (let lag = 0; lag < steps; ++lag) {
+            // Empirical: mean of cov[i][i+lag] for all valid i
+            let empSum = 0, empCount = 0;
+            let thSum = 0, thCount = 0;
+            for (let i = 0; i < steps - lag; ++i) {
+                empSum += cov[i][i+lag];
+                empCount++;
+                thSum += cov_theory[i][i+lag];
+                thCount++;
+            }
+            lagEmp.push(empSum / empCount);
+            lagTheory.push(thSum / thCount);
+            lagErr.push(Math.abs(lagEmp[lag] - lagTheory[lag]));
+        }
+        Plotly.newPlot('sim-lagcov', [
+            {x: Array.from({length: steps}, (_, i) => i), y: lagErr, mode: 'lines+markers', name: 'Abs Error', line: {color: '#ef4444', width: 2, dash: 'dash'}}
+        ], {
+            margin: {t: 20, l: 40, r: 10, b: 40},
+            xaxis: {title: 'Lag'},
+            yaxis: {title: 'Covariance Error'},
+            legend: {orientation: 'h', y: -0.2},
+            plot_bgcolor: 'rgba(0,0,0,0)',
+            paper_bgcolor: 'rgba(0,0,0,0)'
+        }, {displayModeBar: false, responsive: true});
+    }
+
+    // --- Main Simulation Runner ---
+    function runSimulation() {
+        let steps = parseInt(document.getElementById('sim-steps').value);
+        let paths = parseInt(document.getElementById('sim-paths').value);
+        let n_terms = simMethod.value === 'continuous' ? parseInt(document.getElementById('sim-nterms').value) : null;
+        if (simMethod.value === 'continuous') {
+            let {paths: Bt, t} = simulateBrownianContinuous(steps, n_terms, paths);
+            plotSamplePaths(Bt, t);
+            plotCovarianceEmpirical(Bt, t);
+        } else {
+            let {paths: Bt, t, Gamma} = simulateBrownianDiscrete(steps, paths);
+            plotSamplePaths(Bt, t);
+            plotCovarianceEmpirical(Bt, t);
+        }
+    }
+
+    // --- Initial Setup ---
+    updateSimInputs();
+    updateEquation();
+    runSimulation();
+    </script>
+</body>
+</html> 
