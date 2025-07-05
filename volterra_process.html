@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Volterra Process Recipe | The Gaussian Cookbook</title>
+    <meta name="description" content="Recipe for simulating Volterra processes with causal structure and fractional Brownian motion covariance.">
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <!-- CSS -->
+    <link rel="stylesheet" href="static/css/main.css">
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="static/favicon.svg">
+    <!-- MathJax for mathematical notation -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <!-- Add highlight.js for Python syntax highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/python.min.js"></script>
+    <script>hljs.highlightAll();</script>
+    <style>
+    .tab-content h2, .tab-content h3 {
+        color: var(--primary-color);
+    }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <div class="logo-symbol">𝒢</div>
+                <span class="logo-text">Gaussian Cookbook</span>
+            </div>
+            <div class="nav-menu">
+                <a href="index.html#home" class="nav-link">Home</a>
+                <a href="index.html#recipes" class="nav-link">Recipes</a>
+                <a href="index.html#articles" class="nav-link">Articles</a>
+                <a href="index.html#resources" class="nav-link">Resources</a>
+            </div>
+            <div class="nav-toggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Recipe Hero -->
+    <section class="hero short-hero">
+        <div class="hero-content" style="grid-template-columns: 1fr; text-align: center;">
+            <div>
+                <img src="static/img/volterra_process.svg" alt="Volterra Process" class="recipe-img" style="margin-bottom: 1.5rem; max-width: 120px;">
+                <h1 class="hero-title" style="font-size:2.5rem;">Volterra Process</h1>
+                <p class="hero-description" style="color:var(--gray-300); max-width: 600px; margin: 0 auto;">
+                    Recipe for simulating Volterra processes with causal structure that reproduce fractional Brownian motion covariance for any Hurst parameter \( H \in (0,1) \).
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Tabs Section -->
+    <section class="resources">
+        <div class="container">
+            <h2 style="margin-bottom: 2rem; color: var(--primary-color); font-size: 2rem; font-weight: 600; text-align: center;">Simulating Volterra Processes</h2>
+            <div class="tabs">
+                <button class="tab-btn active" data-tab="discrete">Discrete-time</button>
+                <button class="tab-btn" data-tab="simulation">Simulation</button>
+            </div>
+            <div id="discrete" class="tab-content active">
+                <h2>Discrete-time Recipe for Volterra Processes</h2>
+                <h3>Intuition</h3>
+                <p>
+                    The Volterra process provides a causal representation of fractional Brownian motion (fBM) with the same covariance structure. Instead of directly constructing the covariance matrix, we use a causal kernel \( K(t,s) \) that depends only on past times \( s \leq t \). The continuous-time Volterra process is defined as:
+                    $$
+                    X(t) = \int_0^t K(t,s) \, dW(s)
+                    $$
+                    where \( K(t,s) \) is the Volterra kernel that reproduces fBM covariance:
+                    $$
+                    K(t,s) = \sqrt{c_H} \cdot (t-s)^{H-1/2}, \quad c_H = \frac{\Gamma(2H+1)}{2\Gamma(H+1/2)^2}
+                    $$
+                    This kernel works for all \( H \in (0,1) \) and provides the correct causal structure that makes the process naturally adapted to its filtration.  <br><br> It may follow more naturally to think of the Volterra representation similarly to the Karhunen-Loève expansion where, in the discrete sense, the covariance matrix is decomposed and used to weight a Gaussian vector; we may think of the Volterra kernel as the decompsed covariance matrix weighting the Gaussian vector.
+                </p>
+                <h3>Discretization</h3>
+                <p>
+                    To discretize the Volterra process, we approximate the integral using a quadrature rule. For a time grid \( \{t_i\}_{i=0}^n \), the discrete Volterra process becomes:
+                    $$
+                    X(t_i) = \sum_{j=0}^i K(t_i, t_j) \Delta W_j
+                    $$
+                    where \( \Delta W_j = W(t_j) - W(t_{j-1}) \) are independent Gaussian increments and \( K(t_i, t_j) = 0 \) for \( j > i \) (causality).
+                </p>
+                <h3>General Recipe</h3>
+                <ol>
+                    <li>Choose the Hurst parameter \( H \in (0,1) \).</li>
+                    <li>Define the time grid \( \{t_i\}_{i=0}^n \) with uniform spacing \( \Delta t \).</li>
+                    <li>Compute the Volterra kernel \( K(t_i, t_j) \) for all \( i \geq j \).</li>
+                    <li>Generate independent Gaussian increments \( \Delta W_j \sim N(0, \Delta t) \).</li>
+                    <li>Compute the process recursively: \( X(t_i) = \sum_{j=0}^i K(t_i, t_j) \Delta W_j \).</li>
+                </ol>
+                <h3>Python Implementation</h3>
+                <pre><code class="language-python">import numpy as np
+from scipy.special import gamma
+
+def volterra_kernel(t, s, H):
+    """Compute the Volterra kernel K(t,s) for fBM."""
+    if s >= t:
+        return 0.0
+    dt = t - s
+    if H == 0.5:
+        return 1.0  # Standard Brownian motion
+    else:
+        c_H = gamma(2*H + 1) / (2 * gamma(H + 0.5)**2)
+        return np.sqrt(c_H) * (dt**(H-0.5))
+
+def volterra_process_discrete(steps=100, H=0.5, paths=1, T=1):
+    """Simulate Volterra process with causal structure."""
+    t = np.linspace(0, T, steps)
+    dt = T / (steps - 1)
+    
+    # Initialize arrays
+    X = np.zeros((paths, steps))
+    dW = np.random.normal(0, np.sqrt(dt), (paths, steps))
+    
+    # Compute Volterra kernel matrix (lower triangular)
+    K = np.zeros((steps, steps))
+    for i in range(steps):
+        for j in range(i + 1):
+            K[i, j] = volterra_kernel(t[i], t[j], H)
+    
+    # Generate paths using causal structure
+    for p in range(paths):
+        for i in range(steps):
+            X[p, i] = np.sum(K[i, :i+1] * dW[p, :i+1])
+    
+    return X, t
+</code></pre>
+                <p>
+                    <b>Summary:</b> This approach produces the same covariance as fBM but with explicit causal structure, making it naturally adapted to its filtration and suitable for applications requiring causality.
+                </p>
+            </div>
+            <div id="simulation" class="tab-content">
+                <h2>Simulation with Causal Structure</h2>
+                <div style="max-width:900px;margin:0 auto;">
+                    <div style="display:flex;align-items:center;gap:1.5rem;margin-bottom:2rem;">
+                        <label for="sim-method" style="font-weight:600;">Method:</label>
+                        <select id="sim-method" style="font-size:1.1rem;padding:0.4em 1em;border-radius:8px;border:1px solid var(--gray-300);" disabled>
+                            <option value="discrete">Volterra Process</option>
+                        </select>
+                    </div>
+                    <div id="sim-inputs" style="display:flex;flex-wrap:wrap;gap:2rem;justify-content:center;margin-bottom:2.5rem;"></div>
+                    <div id="sim-filtration" style="display:flex;flex-wrap:wrap;gap:2rem;justify-content:center;margin-bottom:2.5rem;align-items:center;">
+                        <div style="flex:1 1 180px;max-width:220px;">
+                            <label for="sim-filtration-s" style="font-weight:600;">Filtration Window s: <span id="sim-filtration-s-val">0.5</span></label>
+                            <input type="range" id="sim-filtration-s" min="0.1" max="1.0" step="0.01" value="0.5" style="width:100%;">
+                        </div>
+                        <div style="flex:1 1 180px;max-width:220px;">
+                            <label for="sim-show-noise" style="font-weight:600;display:flex;align-items:center;gap:0.5rem;">
+                                <input type="checkbox" id="sim-show-noise" style="margin:0;">
+                                Show Gaussian Noise
+                            </label>
+                        </div>
+                    </div>
+                    <div style="display:flex;flex-wrap:wrap;gap:2rem;justify-content:center;align-items:flex-start;">
+                        <div style="flex:1 1 350px;min-width:320px;max-width:420px;text-align:center;display:flex;flex-direction:column;align-items:center;">
+                            <h3>Sample Paths</h3>
+                            <div id="sim-plot" style="background:var(--gray-100);border-radius:12px;height:260px;width:100%;max-width:400px;box-shadow:var(--shadow-sm);margin-bottom:1.5rem;"></div>
+                        </div>
+                        <div style="flex:1 1 350px;min-width:320px;max-width:420px;text-align:center;display:flex;flex-direction:column;align-items:center;">
+                            <h3>Volterra Kernel</h3>
+                            <div id="sim-kernel" style="background:var(--gray-100);border-radius:12px;height:260px;width:100%;max-width:400px;box-shadow:var(--shadow-sm);margin-bottom:1.5rem;"></div>
+                        </div>
+                    </div>
+                    <div style="display:flex;flex-wrap:wrap;gap:2rem;justify-content:center;align-items:flex-start;margin-top:1.5rem;">
+                        <div style="flex:1 1 350px;min-width:320px;max-width:420px;text-align:center;display:flex;flex-direction:column;align-items:center;">
+                            <h3>Iterative Construction</h3>
+                            <div id="sim-iterative" style="background:var(--gray-100);border-radius:12px;height:220px;width:100%;max-width:400px;box-shadow:var(--shadow-sm);margin-bottom:1.5rem;"></div>
+                        </div>
+                        <div style="flex:1 1 350px;min-width:320px;max-width:420px;text-align:center;display:flex;flex-direction:column;align-items:center;">
+                            <h3>Gaussian Noise</h3>
+                            <div id="sim-noise" style="background:var(--gray-100);border-radius:12px;height:220px;width:100%;max-width:400px;box-shadow:var(--shadow-sm);margin-bottom:1.5rem;"></div>
+                        </div>
+                    </div>
+                    <div style="display:flex;flex-wrap:wrap;gap:2rem;justify-content:center;align-items:flex-start;margin-top:1.5rem;">
+                        <div style="flex:1 1 350px;min-width:320px;max-width:420px;text-align:center;display:flex;flex-direction:column;align-items:center;">
+                            <h3>Causal Structure</h3>
+                            <div id="sim-causal" style="background:var(--gray-100);border-radius:12px;height:220px;width:100%;max-width:400px;box-shadow:var(--shadow-sm);margin-bottom:1.5rem;"></div>
+                        </div>
+                        <div style="flex:1 1 350px;min-width:320px;max-width:420px;text-align:center;display:flex;flex-direction:column;align-items:center;">
+                            <h3>Covariance vs fBM</h3>
+                            <div id="sim-heatmap-theory" style="background:var(--gray-100);border-radius:12px;height:220px;width:100%;max-width:400px;box-shadow:var(--shadow-sm);margin-bottom:1.5rem;"></div>
+                        </div>
+                    </div>
+                    <div style="margin-top:2.5rem;">
+                        <h3>Volterra Process Equations</h3>
+                        <div id="sim-equation" style="font-size:1.2rem;margin-top:1rem;">
+                            $$
+                            X(t) = \int_0^t K(t,s) \, dW(s), \quad K(t,s) = \frac{(t-s)^{H-1/2}}{\Gamma(H+1/2)}
+                            $$
+                            $$
+                            \text{Discrete: } X(t_i) = \sum_{j=0}^i K(t_i, t_j) \Delta W_j
+                            $$
+                            <pre id="sim-python" style="margin-top:1.5rem;"><code class="language-python">import numpy as np\nfrom scipy.special import gamma\n\ndef volterra_kernel(t, s, H):\n    if s > t: return 0.0\n    dt = t - s\n    return (dt**(H-0.5)) / gamma(H + 0.5)\n\ndef volterra_process_discrete(steps=100, H=0.5, paths=1):\n    t = np.linspace(0, 1, steps)\n    dt = 1 / (steps - 1)\n    X = np.zeros((paths, steps))\n    dW = np.random.normal(0, np.sqrt(dt), (paths, steps))\n    K = np.zeros((steps, steps))\n    for i in range(steps):\n        for j in range(i + 1):\n            K[i, j] = volterra_kernel(t[i], t[j], H)\n    for p in range(paths):\n        for i in range(steps):\n            X[p, i] = np.sum(K[i, :i+1] * dW[p, :i+1])\n    return X, t</code></pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Article Reference Section -->
+    <section class="article-reference" style="background: var(--gray-50); padding: 2.5rem 0 1.5rem 0;">
+        <div class="container" style="max-width: 900px; margin: 0 auto;">
+            <h2 style="margin-bottom: 1.2rem; color: var(--primary-color); font-size: 2rem; font-weight: 600; text-align: left;">Relevant Articles</h2>
+            <div class="article-card" style="box-shadow: var(--shadow-sm); border-radius: 14px; background: #fff; padding: 2rem 2.2rem; display: flex; flex-direction: column; align-items: flex-start; gap: 0.7rem; margin-bottom: 0; width: 100%; max-width: 100%;">
+                <div class="article-meta" style="font-size: 1rem; color: var(--gray-400); margin-bottom: 0.2rem;">
+                    <span class="article-author" style="color: var(--primary-color); font-weight: 600;">Roman Paolucci</span>
+                    <span class="article-affil" style="margin-left: 1.2em;">Columbia University</span>
+                </div>
+                <div class="article-meta" style="font-size: 1rem; color: var(--gray-400); margin-bottom: 0.2rem;">
+                    <span class="article-date">June 30, 2025</span>
+                </div>
+                <h3 class="article-title" style="margin: 0 0 0.3em 0; font-size: 1.35rem; color: var(--primary-color); font-weight: 600;">Recipes for simulating stochastic processes</h3>
+                <p class="article-abstract" style="margin: 0 0 0.7em 0; color: var(--gray-600); font-size: 1.08rem;">
+                    This note discusses the necessary steps to simulate a stochastic process with a desired covariance structure. In this context, I outline the Karhunen–Loéve theorem and provide intuition and general recipes to decompose a stochastic process by establishing the integral eigenvalue problem (continuous-time) or, equivalently, the covariance matrix diagonalization problem (discrete-time). I then apply these general recipes to Brownian motion, Brownian bridge, and fractional Brownian motion to numerically simulate paths.
+                </p>
+                <div class="article-keywords" style="font-size: 0.98rem; color: var(--gray-500); margin-bottom: 0.5em;">
+                    <b>Keywords:</b> Brownian motion, Brownian bridge, Stochastic processes, Simulation
+                </div>
+                <a href="https://papers.ssrn.com/sol3/papers.cfm?abstract_id=5332011" class="btn btn-secondary article-link" target="_blank" rel="noopener" style="margin-top: 0.2em;">View on SSRN</a>
+                <div class="article-citation" style="font-size: 0.95rem; color: var(--gray-400); margin-top: 1em;">
+                    <b>Suggested Citation:</b><br>
+                    Paolucci, Roman, <i>Recipes for simulating stochastic processes (Fractional Brownian motion)</i> (June 30, 2025). Available at SSRN: <a href="https://papers.ssrn.com/sol3/papers.cfm?abstract_id=5332011" target="_blank" rel="noopener">https://papers.ssrn.com/sol3/papers.cfm?abstract_id=5332011</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <div class="footer-logo">
+                        <div class="logo-symbol">𝒢</div>
+                        <span>The Gaussian Cookbook</span>
+                    </div>
+                    <p>Mastering Gaussian processes through practical recipes and interactive learning with Chef Roman Paolucci.</p>
+                    <hr style="margin: 0.7em 0 0.5em 0; border: none; border-top: 1.5px solid var(--gray-200); width: 90%;">
+                    <div style="margin-top: 0.2em; margin-bottom: 0.5em;">
+                        <span style="font-size: 1.01rem; font-weight: 500; color: var(--primary-color);">Subscribers</span><br>
+                        <div style="margin-top: 1em; text-align: left; position: relative; width: 180px; height: 63px;">
+                            <iframe height="90px" frameborder="0" src="https://socialcounts.org/youtube-live-subscriber-count/UCW1svfGxG4ADnbc1HCH6dqA/embed" allowfullscreen="" style="position: relative; z-index: 1; transform: scale(0.65); transform-origin: left top; border-radius: 16px; overflow: hidden;"></iframe>
+                            <a href="https://youtube.com/@quantguild" target="_blank" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 2; display: block;"></a>
+                        </div>
+                    </div>
+                </div>
+                <div class="footer-section">
+                    <h4>Quick Links</h4>
+                    <ul>
+                        <li><a href="https://github.com/romanmichaelpaolucci/GaussianCookbook" target="_blank"><i class="fab fa-github" style="color: #fff;"></i> GitHub</a></li>
+                        <li><a href="https://youtube.com/@quantguild" target="_blank"><i class="fab fa-youtube" style="color: #fff;"></i> YouTube</a></li>
+                        <li><a href="https://papers.ssrn.com/sol3/cf_dev/AbsByAuth.cfm?per_id=4862816" target="_blank"><i class="fas fa-scroll" style="color: #fff;"></i> SSRN</a></li>
+                        <li><a href="https://medium.com/@quantguild" target="_blank"><i class="fab fa-medium" style="color: #fff;"></i> Medium</a></li>
+                        <li><a href="https://discord.com/invite/MJ4FU2c6c3" target="_blank"><i class="fab fa-discord" style="color: #fff;"></i> Discord</a></li>
+                        <li><a href="https://www.linkedin.com/in/rmp99/" target="_blank"><i class="fab fa-linkedin" style="color: #fff;"></i> LinkedIn</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Recipes</h4>
+                    <ul>
+                        <li><a href="brownian-motion.html">Brownian Motion</a></li>
+                        <li><a href="brownian-bridge.html">Brownian Bridge</a></li>
+                        <li><a href="fractional-brownian-motion.html">Fractional Brownian Motion</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 Quant Guild. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript for Tabs -->
+    <script>
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
+            this.classList.add('active');
+            document.getElementById(this.dataset.tab).classList.add('active');
+        });
+    });
+    </script>
+
+    <script>
+    // Force MathJax to re-typeset after page load
+    if (window.MathJax) {
+      MathJax.typesetPromise();
+    }
+    </script>
+
+    <script src="https://cdn.plot.ly/plotly-2.26.0.min.js"></script>
+    <script>
+    // --- Simulation Inputs ---
+    const simInputs = document.getElementById('sim-inputs');
+    const simMethod = document.getElementById('sim-method');
+    const simEquation = document.getElementById('sim-equation');
+    const simPlot = document.getElementById('sim-plot');
+    const simHeatmap = document.getElementById('sim-heatmap');
+    
+    // Global variables for iterative construction
+    let globalSimData = null;
+    let globalNoiseData = null;
+
+    function createSlider(id, label, min, max, step, value) {
+        return `<div style='flex:1 1 180px;max-width:220px;'>
+            <label for='${id}' style='font-weight:600;'>${label}: <span id='${id}-val'>${value}</span></label>
+            <input type='range' id='${id}' min='${min}' max='${max}' step='${step}' value='${value}' style='width:100%;'>
+        </div>`;
+    }
+
+    function updateSimInputs() {
+        let html = '';
+        html += createSlider('sim-steps', 'Time Steps', 50, 500, 10, 200);
+        html += createSlider('sim-paths', 'Sample Paths', 1, 100, 1, 5);
+        html += createSlider('sim-hurst', 'Hurst H', 0.1, 0.9, 0.01, 0.5);
+        simInputs.innerHTML = html;
+        // Add listeners to update value display and rerun simulation
+        ['sim-steps','sim-paths','sim-hurst'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                el.addEventListener('input', () => {
+                    document.getElementById(id+'-val').textContent = el.value;
+                    runSimulation();
+                });
+            }
+        });
+        
+        // Add filtration slider listener
+        const filtrationSlider = document.getElementById('sim-filtration-s');
+        if (filtrationSlider) {
+            filtrationSlider.addEventListener('input', () => {
+                document.getElementById('sim-filtration-s-val').textContent = filtrationSlider.value;
+                updateIterativePlot();
+            });
+        }
+        
+        // Add noise checkbox listener
+        const noiseCheckbox = document.getElementById('sim-show-noise');
+        if (noiseCheckbox) {
+            noiseCheckbox.addEventListener('change', () => {
+                updateNoisePlot();
+            });
+        }
+    }
+
+    // --- MathJax Equation ---
+    function updateEquation() {
+        simEquation.innerHTML = `$$
+            X(t) = \\int_0^t K(t,s) \\, dW(s), \\quad K(t,s) = \\sqrt{c_H} \\cdot (t-s)^{H-1/2}
+        $$
+        $$
+            c_H = \\frac{\\Gamma(2H+1)}{2\\Gamma(H+1/2)^2}, \\quad \\text{Discrete: } X(t_i) = \\sum_{j=0}^i K(t_i, t_j) \\Delta W_j
+        $$
+        <pre id='sim-python' style='margin-top:1.5rem;'><code class='language-python'>import numpy as np\nfrom scipy.special import gamma\n\ndef volterra_kernel(t, s, H):\n    if s >= t: return 0.0\n    dt = t - s\n    if H == 0.5:\n        return 1.0  # Standard Brownian motion\n    else:\n        c_H = gamma(2*H + 1) / (2 * gamma(H + 0.5)**2)\n        return np.sqrt(c_H) * (dt**(H-0.5))\n\ndef volterra_process_discrete(steps=100, H=0.5, paths=1):\n    t = np.linspace(0, 1, steps)\n    dt = 1 / (steps - 1)\n    X = np.zeros((paths, steps))\n    dW = np.random.normal(0, np.sqrt(dt), (paths, steps))\n    K = np.zeros((steps, steps))\n    for i in range(steps):\n        for j in range(i + 1):\n            K[i, j] = volterra_kernel(t[i], t[j], H)\n    for p in range(paths):\n        for i in range(steps):\n            X[p, i] = np.sum(K[i, :i+1] * dW[p, :i+1])\n    return X, t</code></pre>`;
+        if (window.MathJax) MathJax.typesetPromise([simEquation]);
+        if (window.hljs) setTimeout(() => hljs.highlightAll(), 0);
+    }
+
+    // --- Volterra Process Simulation ---
+    function gamma(x) {
+        // Simple gamma function approximation
+        if (x === 0.5) return Math.sqrt(Math.PI);
+        if (x === 1) return 1;
+        if (x === 1.5) return 0.5 * Math.sqrt(Math.PI);
+        if (x === 2) return 1;
+        // For other values, use Stirling's approximation
+        return Math.sqrt(2 * Math.PI / x) * Math.pow(x / Math.E, x);
+    }
+
+    function volterraKernel(t, s, H) {
+        if (s >= t) return 0.0;
+        const dt = t - s;
+        
+        // The correct Volterra kernel for fBM that works for all H ∈ (0,1)
+        // This is the kernel that reproduces the fBM covariance
+        if (H === 0.5) {
+            // Standard Brownian motion
+            return 1.0;
+        } else {
+            // For H ≠ 0.5, use the proper Volterra kernel
+            // This avoids the singularity issue for H < 0.5
+            const c_H = gamma(2*H + 1) / (2 * gamma(H + 0.5) * gamma(H + 0.5));
+            return Math.sqrt(c_H) * Math.pow(dt, H - 0.5);
+        }
+    }
+
+    function simulateVolterraProcess(steps, paths, H) {
+        const T = 1;
+        const t = Array.from({ length: steps }, (_, i) => T * i / (steps - 1));
+        const dt = T / (steps - 1);
+        
+        // Initialize arrays
+        const X = Array.from({length: paths}, () => Array(steps).fill(0));
+        const dW = Array.from({length: paths}, () => Array.from({length: steps}, () => randn() * Math.sqrt(dt)));
+        
+        // Compute Volterra kernel matrix (lower triangular)
+        const K = Array.from({length: steps}, (_, i) => Array(steps).fill(0));
+        for (let i = 0; i < steps; ++i) {
+            for (let j = 0; j <= i; ++j) {
+                K[i][j] = volterraKernel(t[i], t[j], H);
+            }
+        }
+        
+        // Generate paths using causal structure
+        for (let p = 0; p < paths; ++p) {
+            for (let i = 0; i < steps; ++i) {
+                let sum = 0;
+                for (let j = 0; j <= i; ++j) {
+                    sum += K[i][j] * dW[p][j];
+                }
+                X[p][i] = sum;
+            }
+        }
+        
+        return {paths: X, t, K, dW};
+    }
+
+    function transpose(matrix) {
+        if (!matrix || matrix.length === 0) return [];
+        const rows = matrix.length;
+        const cols = matrix[0].length;
+        const transposed = Array.from({ length: cols }, () => Array(rows).fill(0));
+        for (let i = 0; i < rows; i++) {
+            for (let j = 0; j < cols; j++) {
+                transposed[j][i] = matrix[i][j];
+            }
+        }
+        return transposed;
+    }
+
+    // --- Random Normal ---
+    function randn() {
+        let u = 0, v = 0;
+        while(u === 0) u = Math.random();
+        while(v === 0) v = Math.random();
+        return Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
+    }
+
+    // --- Plotting ---
+    function plotSamplePaths(paths, t) {
+        let data = paths.map((p, i) => ({
+            x: t,
+            y: p,
+            mode: 'lines',
+            name: `Path ${i+1}`,
+            line: {width: 2}
+        }));
+        Plotly.newPlot('sim-plot', data, {
+            margin: {t: 20, l: 40, r: 10, b: 40},
+            xaxis: {title: 't'},
+            yaxis: {title: 'B_H(t)'},
+            showlegend: false,
+            plot_bgcolor: 'rgba(0,0,0,0)',
+            paper_bgcolor: 'rgba(0,0,0,0)'
+        }, {displayModeBar: false, responsive: true});
+    }
+
+    function plotVolterraKernel(K, t, H) {
+        // Plot the Volterra kernel as a heatmap
+        Plotly.newPlot('sim-kernel', [{
+            z: K,
+            type: 'heatmap',
+            colorscale: 'Viridis',
+            colorbar: {title: 'K(t,s)'}
+        }], {
+            margin: {t: 20, l: 40, r: 10, b: 40},
+            xaxis: {title: 's'},
+            yaxis: {title: 't'},
+            plot_bgcolor: 'rgba(0,0,0,0)',
+            paper_bgcolor: 'rgba(0,0,0,0)'
+        }, {displayModeBar: false, responsive: true});
+    }
+
+    function plotCausalStructure(K, t) {
+        // Show the causal structure by plotting K(t,s) vs s for fixed t
+        const steps = t.length;
+        const selectedTimes = [Math.floor(steps/4), Math.floor(steps/2), Math.floor(3*steps/4)];
+        const traces = selectedTimes.map((i, idx) => ({
+            x: t.slice(0, i+1),
+            y: K[i].slice(0, i+1),
+            mode: 'lines+markers',
+            name: `t = ${t[i].toFixed(2)}`,
+            line: {width: 2}
+        }));
+        
+        Plotly.newPlot('sim-causal', traces, {
+            margin: {t: 20, l: 40, r: 10, b: 40},
+            xaxis: {title: 's'},
+            yaxis: {title: 'K(t,s)'},
+            legend: {orientation: 'h', y: -0.2},
+            plot_bgcolor: 'rgba(0,0,0,0)',
+            paper_bgcolor: 'rgba(0,0,0,0)'
+        }, {displayModeBar: false, responsive: true});
+    }
+
+    function plotCovarianceComparison(X, t, H) {
+        // Compute empirical covariance from Volterra process
+        const paths = X.length;
+        const steps = X[0].length;
+        const means = Array(steps).fill(0);
+        for (let j = 0; j < steps; ++j) {
+            for (let i = 0; i < paths; ++i) means[j] += X[i][j];
+            means[j] /= paths;
+        }
+        const cov_volterra = Array.from({length: steps}, (_, i) => Array(steps).fill(0));
+        for (let i = 0; i < steps; ++i) {
+            for (let j = 0; j < steps; ++j) {
+                let sum = 0;
+                for (let k = 0; k < paths; ++k) {
+                    sum += (X[k][i] - means[i]) * (X[k][j] - means[j]);
+                }
+                cov_volterra[i][j] = sum / (paths - 1);
+            }
+        }
+        
+        // Compute theoretical fBM covariance
+        const cov_fbm = Array.from({length: steps}, (_, i) => Array.from({length: steps}, (_, j) => 0.5 * (Math.pow(t[i], 2*H) + Math.pow(t[j], 2*H) - Math.pow(Math.abs(t[i]-t[j]), 2*H))));
+        
+        // Plot comparison
+        Plotly.newPlot('sim-heatmap-theory', [{
+            z: cov_fbm,
+            type: 'heatmap',
+            colorscale: 'Viridis',
+            colorbar: {title: 'fBM Cov'}
+        }], {
+            margin: {t: 20, l: 40, r: 10, b: 40},
+            xaxis: {title: 't'},
+            yaxis: {title: 't'},
+            plot_bgcolor: 'rgba(0,0,0,0)',
+            paper_bgcolor: 'rgba(0,0,0,0)'
+        }, {displayModeBar: false, responsive: true});
+    }
+
+    function plotIterativeConstruction(s, X, t, K, dW) {
+        if (!globalSimData) return;
+        
+        const steps = t.length;
+        const sIndex = Math.floor(s * (steps - 1));
+        const visibleSteps = Math.min(sIndex + 1, steps);
+        
+        // Create traces for each path up to the filtration window
+        const traces = [];
+        for (let p = 0; p < Math.min(X.length, 3); ++p) { // Show first 3 paths
+            traces.push({
+                x: t.slice(0, visibleSteps),
+                y: X[p].slice(0, visibleSteps),
+                mode: 'lines+markers',
+                name: `Path ${p+1}`,
+                line: {width: 2},
+                marker: {size: 4}
+            });
+        }
+        
+        // Add vertical line showing filtration window
+        traces.push({
+            x: [t[sIndex], t[sIndex]],
+            y: [Math.min(...X.flat().slice(0, visibleSteps)), Math.max(...X.flat().slice(0, visibleSteps))],
+            mode: 'lines',
+            name: 'Filtration Window',
+            line: {color: '#ef4444', width: 2, dash: 'dash'}
+        });
+        
+        Plotly.newPlot('sim-iterative', traces, {
+            margin: {t: 20, l: 40, r: 10, b: 40},
+            xaxis: {title: 't', range: [0, 1]},
+            yaxis: {title: 'X(t)'},
+            legend: {orientation: 'h', y: -0.2},
+            plot_bgcolor: 'rgba(0,0,0,0)',
+            paper_bgcolor: 'rgba(0,0,0,0)'
+        }, {displayModeBar: false, responsive: true});
+    }
+
+    function plotGaussianNoise(showNoise, dW, t) {
+        if (!globalNoiseData) return;
+        
+        const steps = t.length;
+        const traces = [];
+        
+        if (showNoise) {
+            // Show the Gaussian noise increments
+            for (let p = 0; p < Math.min(dW.length, 3); ++p) {
+                traces.push({
+                    x: t,
+                    y: dW[p],
+                    mode: 'lines+markers',
+                    name: `Noise ${p+1}`,
+                    line: {width: 1.5},
+                    marker: {size: 3}
+                });
+            }
+        } else {
+            // Show cumulative noise (integrated Brownian motion)
+            const cumulativeNoise = Array.from({length: Math.min(dW.length, 3)}, () => Array(steps).fill(0));
+            for (let p = 0; p < Math.min(dW.length, 3); ++p) {
+                for (let i = 0; i < steps; ++i) {
+                    cumulativeNoise[p][i] = dW[p].slice(0, i+1).reduce((sum, val) => sum + val, 0);
+                }
+                traces.push({
+                    x: t,
+                    y: cumulativeNoise[p],
+                    mode: 'lines+markers',
+                    name: `W(t) ${p+1}`,
+                    line: {width: 2},
+                    marker: {size: 4}
+                });
+            }
+        }
+        
+        Plotly.newPlot('sim-noise', traces, {
+            margin: {t: 20, l: 40, r: 10, b: 40},
+            xaxis: {title: 't'},
+            yaxis: {title: showNoise ? 'ΔW(t)' : 'W(t)'},
+            legend: {orientation: 'h', y: -0.2},
+            plot_bgcolor: 'rgba(0,0,0,0)',
+            paper_bgcolor: 'rgba(0,0,0,0)'
+        }, {displayModeBar: false, responsive: true});
+    }
+
+    function updateIterativePlot() {
+        if (!globalSimData) return;
+        const s = parseFloat(document.getElementById('sim-filtration-s').value);
+        plotIterativeConstruction(s, globalSimData.X, globalSimData.t, globalSimData.K, globalSimData.dW);
+    }
+
+    function updateNoisePlot() {
+        if (!globalNoiseData) return;
+        const showNoise = document.getElementById('sim-show-noise').checked;
+        plotGaussianNoise(showNoise, globalNoiseData.dW, globalNoiseData.t);
+    }
+
+    // --- Main Simulation Runner ---
+    function runSimulation() {
+        let steps = parseInt(document.getElementById('sim-steps').value);
+        let paths = parseInt(document.getElementById('sim-paths').value);
+        let H = parseFloat(document.getElementById('sim-hurst').value);
+        let {paths: X, t, K, dW} = simulateVolterraProcess(steps, paths, H);
+        
+        // Store global data for iterative plots
+        globalSimData = {X, t, K, dW};
+        globalNoiseData = {dW, t};
+        
+        plotSamplePaths(X, t);
+        plotVolterraKernel(K, t, H);
+        plotCausalStructure(K, t);
+        plotCovarianceComparison(X, t, H);
+        
+        // Initialize iterative and noise plots
+        const s = parseFloat(document.getElementById('sim-filtration-s').value);
+        const showNoise = document.getElementById('sim-show-noise').checked;
+        plotIterativeConstruction(s, X, t, K, dW);
+        plotGaussianNoise(showNoise, dW, t);
+    }
+
+    // --- Initial Setup ---
+    updateSimInputs();
+    updateEquation();
+    runSimulation();
+    </script>
+</body>
+</html> 
