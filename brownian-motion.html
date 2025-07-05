@@ -367,56 +367,30 @@ def brownian_motion_dtr(steps=100, paths=1, T=1):
     }
 
     function simulateBrownianDiscrete(steps, paths) {
-    T = 1;
-    // Generate linearly spaced time points from 0 to T
-    const t = Array.from({ length: steps }, (_, i) => T * i / (steps - 1));
-
-    // Initialize the covariance matrix Gamma with zeros
-    const Gamma = Array.from({ length: steps }, () => Array(steps).fill(0));
-
-    // Populate the covariance matrix: Gamma[i][j] = min(t_i, t_j)
-    for (let i = 0; i < steps; ++i) {
-        for (let j = 0; j < steps; ++j) {
-            Gamma[i][j] = Math.min(t[i], t[j]);
-        }
-    }
-
-    // Perform eigendecomposition of Gamma
-    // This relies on the numericEig function, which in turn relies on numeric.js
-    const { values: eigenvals, vectors: eigenvecs } = numericEig(Gamma);
-
-    // Generate a matrix of standard normal random numbers (steps x paths)
-    // Z[i][j] is the j-th random variable for the i-th step
-    const Z = Array.from({ length: steps }, () => Array.from({ length: paths }, () => randn()));
-
-    // Create a diagonal matrix from the square roots of the eigenvalues
-    // Ensure eigenvalues are non-negative before taking the square root
-    const sqrtEigenvals = eigenvals.map(val => Math.sqrt(Math.max(0, val)));
-
-    // Perform the matrix multiplication: Wt = eigenvecs @ diag(sqrt(eigenvals)) @ Z
-    // Using numeric.js for matrix multiplication (numeric.dot)
-    let Wt;
-    if (window.numeric && numeric.dot) {
-        const diagSqrtLambda = Array.from({ length: steps }, (_, i) =>
-            Array.from({ length: steps }, (_, j) => (i === j ? sqrtEigenvals[i] : 0))
-        );
-        Wt = numeric.dot(numeric.dot(eigenvecs, diagSqrtLambda), Z);
-    } else {
-        // Fallback for matrix multiplication if numeric.js is not loaded.
-        // This will also lead to incorrect results.
-        console.warn("numeric.js is not loaded. Cannot perform accurate matrix multiplication.");
-        Wt = Array.from({length: steps}, () => Array(paths).fill(0));
-        // A simple, but incorrect, fallback for demonstration.
-        // In a real scenario, you'd need a full matrix multiplication implementation.
-        for (let i = 0; i < steps; i++) {
-            for (let j = 0; j < paths; j++) {
-                Wt[i][j] = Z[i][j]; // Just return Z if no matrix ops
+        const T = 1;
+        // Generate linearly spaced time points from 0 to T
+        const t = Array.from({ length: steps }, (_, i) => T * i / (steps - 1));
+        
+        // Initialize paths array
+        const Bt = Array.from({ length: paths }, () => Array(steps).fill(0));
+        
+        // For each path, generate Brownian motion using independent increments
+        for (let p = 0; p < paths; ++p) {
+            // Generate independent normal increments
+            const increments = Array.from({ length: steps - 1 }, () => randn());
+            
+            // Scale increments by sqrt(dt) where dt = T/(steps-1)
+            const dt = T / (steps - 1);
+            const sqrtDt = Math.sqrt(dt);
+            
+            // Build the path using cumulative sum of scaled increments
+            Bt[p][0] = 0; // Start at 0
+            for (let i = 1; i < steps; ++i) {
+                Bt[p][i] = Bt[p][i-1] + sqrtDt * increments[i-1];
             }
         }
-    }
-
-    // Transpose the result to get paths as rows (paths x steps)
-    return transpose(Wt);
+        
+        return {paths: Bt, t};
     }
 
     function transpose(matrix) {
