@@ -338,7 +338,7 @@ def brownian_bridge_dtr(steps=100, paths=1, T=1):
             <pre id='sim-python' style='margin-top:1.5rem;'><code class='language-python'>import numpy as np\n\ndef brownian_bridge_ctr(steps=100, n_terms=500, paths=1):\n    t = np.linspace(0, 1, steps)\n    Bt = np.zeros((paths, steps))\n    for p in range(paths):\n        Z = np.random.normal(0, 1, n_terms)\n        k = np.arange(1, n_terms + 1)\n        for i, ti in enumerate(t):\n            sin_terms = np.sin(k * np.pi * ti) / (k * np.pi)\n            Bt[p, i] = np.sqrt(2) * np.dot(Z, sin_terms)\n    return Bt</code></pre>`;
         } else {
             simEquation.innerHTML = `$$
-                B_i = W_i - t_i * W_n
+                B = Q \\sqrt{\\Lambda} Z
             $$
             <pre id='sim-python' style='margin-top:1.5rem;'><code class='language-python'>import numpy as np\n\ndef brownian_bridge_dtr(steps=100, paths=1):\n    # Simulate Brownian bridge using definition: B_i = W_i - t_i * W_n\n    const T = 1;\n    const t = Array.from({ length: steps }, (_, i) => T * i / (steps - 1));\n    let Bt = Array.from({length: paths}, () => Array(steps).fill(0));\n    for (let p = 0; p < paths; ++p) {\n        # Generate Brownian motion increments\n        let increments = Array.from({length: steps-1}, () => randn() * Math.sqrt(T/(steps-1)));\n        let W = [0];\n        for (let i = 1; i < steps; ++i) {\n            W.push(W[i-1] + increments[i-1]);\n        }\n        let Wn = W[steps-1];\n        for (let i = 0; i < steps; ++i) {\n            Bt[p][i] = W[i] - t[i] * Wn;\n        }\n    }\n    return {paths: Bt, t};</code></pre>`;
         }
