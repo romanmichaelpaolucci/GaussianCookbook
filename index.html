@@ -47,44 +47,47 @@
     </nav>
 
     <!-- Hero Section -->
-    <section id="home" class="hero">
-        <div class="hero-background">
-            <div class="gaussian-curve"></div>
-            <div class="particles"></div>
+    <section id="home" class="hero hero--featured">
+        <div class="hero-background hero-background--navy">
+            <div class="gaussian-curve gaussian-curve--navy"></div>
+            <div class="particles particles--navy"></div>
         </div>
-        <div class="hero-content">
-            <div class="hero-text">
-                <h1 class="hero-title">
-                    The Gaussian Cookbook
-                    <span class="subtitle">Recipes for simulating stochastic processes</span>
-                </h1>
-                <div class="hero-author">
-                    <div class="hero-headshot">
-                        <img src="static/img/roman_image.png" alt="Chef Roman Paolucci" class="headshot-img">
+        <div class="hero-layout">
+            <div class="hero-main">
+                <div class="hero-copy">
+                    <p class="hero-eyebrow">Recipes for simulating stochastic processes</p>
+                    <h1 class="hero-title hero-title--featured">
+                        The Gaussian Cookbook
+                    </h1>
+                    <div class="hero-byline">
+                        <span class="hero-byline-with">with <span class="hero-byline-name">Chef Roman Paolucci</span></span>
+                        <span class="hero-byline-role">Founder of Quant Guild</span>
                     </div>
-                    <div class="hero-author-text">
-                        with Chef Roman Paolucci,<br>Graduate Student at Columbia University
+                    <p class="hero-description">
+                        Master the art of simulating stochastic processes with comprehensive recipes for processes
+                        including the Brownian bridge and fractional Brownian motion.
+                    </p>
+                    <div class="hero-buttons">
+                        <button class="btn btn-primary btn--hero" type="button" onclick="scrollToSection('recipes')">
+                            Explore Recipes
+                        </button>
+                        <button class="btn btn-secondary btn--hero-outline" type="button" onclick="scrollToSection('resources')">
+                            Other Resources
+                        </button>
                     </div>
                 </div>
-                <p class="hero-description">
-                    Master the art of simulating stochastic processes with comprehensive recipes for processes  
-                    including the Brownian bridge and fractional Brownian motion.
-                </p>
-                <div class="hero-buttons">
-                    <button class="btn btn-primary" onclick="scrollToSection('recipes')">
-                        Explore Recipes
-                    </button>
-                    <button class="btn btn-secondary" onclick="scrollToSection('resources')" style="margin-left: 1rem;">
-                        Other Resources
-                    </button>
-                </div>
-            </div>
-            <div class="hero-visual">
-                <div class="math-preview">
-                    <div class="equation">
-                        \[X(t) = \int_0^t K(t,s) \, dW(s)\]
+                <div class="hero-portrait-stage">
+                    <div class="hero-math-arc" aria-hidden="true">
+                        <div class="hero-float-eq hero-float-eq--1">\(X(t)=\int_0^t K(t,s)\,dW(s)\)</div>
+                        <div class="hero-float-eq hero-float-eq--2" title="Markovian lift">\(dZ_t = A Z_t\,dt + B\,dW_t\)</div>
+                        <div class="hero-float-eq hero-float-eq--3">\(B_t^H,\ 0&lt;H&lt;1\)</div>
+                        <div class="hero-float-eq hero-float-eq--4">\(B_t - t B_1\)</div>
+                        <div class="hero-float-eq hero-float-eq--5">\(k(s,t)=\mathbb{E}[X_s X_t]\)</div>
+                        <div class="hero-float-eq hero-float-eq--6">\(\mathcal{L}(X\mid \mathcal{F}_s)\)</div>
                     </div>
-                    <div class="equation-caption">Stochastic Process Representation</div>
+                    <figure class="hero-portrait">
+                        <img src="static/img/hero-roman.png" alt="Roman Paolucci in chef hat and apron, holding a whisk and a bowl labeled Stochastic Processes" class="hero-portrait-img" width="640" height="900" decoding="async">
+                    </figure>
                 </div>
             </div>
         </div>
@@ -146,6 +149,18 @@
                     </div>
                     <a href="volterra_process.html" class="btn btn-primary view-recipe-btn">View Recipe</a>    
                 </div>
+                <div class="chapter-card">
+                    <div class="chapter-number">05</div>
+                    <h3>Markovian Lifting</h3>
+                    <img src="static/img/markovian_lifting.svg" alt="Markovian Lifting" class="recipe-img">
+                    <p>Approximate singular fractional kernels via a Laplace mixture of exponentials; lift to a stack of correlated OU factors driven by common noise for rough-volatility-style paths.</p>
+                    <div class="chapter-topics">
+                        <span class="topic">Laplace Kernel</span>
+                        <span class="topic">OU Mixture</span>
+                        <span class="topic">Rough Volatility</span>
+                    </div>
+                    <a href="markovian-lifting.html" class="btn btn-primary view-recipe-btn">View Recipe</a>
+                </div>
             </div>
         </div>
     </section>
@@ -161,7 +176,7 @@
                 <div class="article-card">
                     <div class="article-meta">
                         <span class="article-author" style="color: var(--primary-color); font-weight: 600;">Roman Paolucci</span>
-                        <span class="article-affil" style="margin-left: 1.2em;">Columbia University</span>
+                        <span class="article-affil" style="margin-left: 1.2em;">Quant Guild</span>
                     </div>
                     <div class="article-meta">
                         <span class="article-date">June 30, 2025</span>
@@ -261,12 +276,19 @@
                     </div>
                     <p>Mastering Gaussian processes through practical recipes and interactive learning with Chef Roman Paolucci.</p>
                     <hr style="margin: 0.7em 0 0.5em 0; border: none; border-top: 1.5px solid var(--gray-200); width: 90%;">
-                    <div style="margin-top: 0.2em; margin-bottom: 0.5em;">
-                        <span style="font-size: 1.01rem; font-weight: 500; color: var(--primary-color);">Subscribers</span><br>
-                        <div style="margin-top: 1em; text-align: left; position: relative; width: 180px; height: 63px;"> <!-- Adjust width/height to match scaled iframe -->
-                            <iframe height="90px" frameborder="0" src="https://socialcounts.org/youtube-live-subscriber-count/UCW1svfGxG4ADnbc1HCH6dqA/embed" allowfullscreen="" style="position: relative; z-index: 1; transform: scale(0.65); transform-origin: left top; border-radius: 16px; overflow: hidden;"></iframe>
-                            <a href="https://youtube.com/@quantguild" target="_blank" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 2; display: block;"></a>
-                        </div>    
+                    <div class="footer-subscriber-block">
+                        <span class="footer-subscriber-label">Subscribers</span>
+                        <a href="https://www.youtube.com/@quantguild" class="footer-yt-card" target="_blank" rel="noopener noreferrer">
+                            <div class="footer-yt-card__inner">
+                                <img class="footer-yt-card__avatar" src="static/img/roman_image.png" width="56" height="56" alt="">
+                                <div class="footer-yt-card__body">
+                                    <span class="footer-yt-card__name">Roman Paolucci</span>
+                                    <span class="footer-yt-card__count" id="footer-yt-sub-count">73,320</span>
+                                    <span class="footer-yt-card__hint">YouTube · @quantguild</span>
+                                </div>
+                                <span class="footer-yt-card__icon" aria-hidden="true"><i class="fab fa-youtube"></i></span>
+                            </div>
+                        </a>
                     </div>
                 </div>
                 <div class="footer-section">
@@ -287,6 +309,7 @@
                         <li><a href="brownian-bridge.html">Brownian Bridge</a></li>
                         <li><a href="fractional-brownian-motion.html">Fractional Brownian Motion</a></li>
                         <li><a href="volterra_process.html">Volterra Process</a></li>
+                        <li><a href="markovian-lifting.html">Markovian Lifting</a></li>
                     </ul>
                 </div>
             </div>

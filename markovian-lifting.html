@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Markovian Lifting Recipe | The Gaussian Cookbook</title>
+    <meta name="description" content="Markovian lifting via Laplace mixtures of OU factors for rough fractional volatility dynamics.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="static/css/main.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link rel="icon" type="image/svg+xml" href="static/favicon.svg">
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/python.min.js"></script>
+    <script>hljs.highlightAll();</script>
+    <style>
+    .tab-content h2, .tab-content h3 {
+        color: var(--primary-color);
+    }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <div class="logo-symbol">𝒢</div>
+                <span class="logo-text">Gaussian Cookbook</span>
+            </div>
+            <div class="nav-menu">
+                <a href="index.html#home" class="nav-link">Home</a>
+                <a href="index.html#recipes" class="nav-link">Recipes</a>
+                <a href="index.html#articles" class="nav-link">Articles</a>
+                <a href="index.html#resources" class="nav-link">Resources</a>
+            </div>
+            <div class="nav-toggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Recipe Hero -->
+    <section class="hero short-hero">
+        <div class="hero-content" style="grid-template-columns: 1fr; text-align: center;">
+            <div>
+                <img src="static/img/markovian_lifting.svg" alt="Markovian Lifting" class="recipe-img" style="margin-bottom: 1.5rem; max-width: 120px;">
+                <h1 class="hero-title" style="font-size:2.5rem;">Markovian Lifting</h1>
+                <p class="hero-description" style="color:var(--gray-300); max-width: 640px; margin: 0 auto;">
+                    Represent rough fractional dynamics as a <strong>finite Markov lift</strong>: mix exponential (OU) modes chosen by quadrature in the Laplace domain so a single correlated Gaussian Markov chain reproduces—approximately—the singular kernels used in rough volatility and \(H &lt; \tfrac{1}{2}\) fractional models.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Tabs Section -->
+    <section class="resources">
+        <div class="container">
+            <div style="max-width: 800px; margin: 0 auto 2.25rem auto;">
+                <div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 12px; box-shadow: var(--shadow-md, 0 4px 24px rgba(0,0,0,0.08)); background: var(--gray-900, #111827);">
+                    <iframe
+                        style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0;"
+                        src="https://www.youtube.com/embed/Cr7kBSPqD8A"
+                        title="Markovian lifting — Quant Guild"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                        allowfullscreen
+                        loading="lazy"
+                        referrerpolicy="strict-origin-when-cross-origin"></iframe>
+                </div>
+            </div>
+            <h2 style="margin-bottom: 2rem; color: var(--primary-color); font-size: 2rem; font-weight: 600; text-align: center;">Simulating via Markovian Lifting</h2>
+            <div class="tabs">
+                <button class="tab-btn active" data-tab="discrete">Discrete-time</button>
+                <button class="tab-btn" data-tab="simulation">Simulation</button>
+            </div>
+            <div id="discrete" class="tab-content active">
+                <h2>Discrete-time Recipe for Markovian Lifting</h2>
+                <h3>Intuition</h3>
+                <p>
+                    Markovian lifting approximates fractional and rough-volatility dynamics by replacing a singular, non-Markov kernel with a <strong>Laplace mixture of exponentials</strong>. Informally, one writes a memory kernel \(G(\tau)\) as a Laplace transform of a measure on mean-reversion rates \(\lambda\):
+                    $$
+                    G(\tau) \approx \int_0^\infty e^{-\lambda \tau}\,\nu(d\lambda), \qquad \tau \ge 0.
+                    $$
+                    Each exponential corresponds to an Ornstein–Uhlenbeck (OU) factor. Stacking \(M\) OU states driven by a <em>single</em> Brownian motion \(W\) gives a Gaussian <strong>Markov</strong> process \(Z_t = (X^{(1)}_t,\ldots,X^{(M)}_t)^\top\), and the linear aggregate
+                    $$
+                    Y_t = \sum_{k=1}^M w_k\, X^{(k)}_t
+                    $$
+                    mimics rough fractional covariance when the pairs \((\lambda_k, w_k)\) are chosen by quadrature in the Laplace domain—analogous in spirit to the Volterra recipe, where a causal kernel weights Gaussian noise, except here the kernel is represented by a finite exponential mixture and the state vector makes the dynamics Markovian for filtering and simulation. <br><br>
+                    In continuous time, with rates \(\lambda_k &gt; 0\) and weights \(w_k\),
+                    $$
+                    dX^{(k)}_t = -\lambda_k X^{(k)}_t\,dt + w_k\,dW_t, \qquad X^{(k)}_0 = 0.
+                    $$
+                    The observable \(Y_t\) is the rough-vol-style factor used in lifted stochastic-volatility models when coupled with price.
+                </p>
+                <h3>Discretization</h3>
+                <p>
+                    Fix a time grid \( \{t_i\}_{i=0}^n \) with uniform step \(\Delta t\). Over each interval, the exact OU transition driven by the same \(W\) implies correlated Gaussian innovations \(\eta^{(k)}_{i}\) for each factor. Conditionally on the past, one updates
+                    $$
+                    X^{(k)}_{i+1} = e^{-\lambda_k \Delta t}\, X^{(k)}_i + \eta^{(k)}_{i+1},
+                    $$
+                    where the innovation vector \(\eta\) is Gaussian with mean zero and
+                    $$
+                    \mathrm{Cov}\big(\eta^{(j)},\eta^{(k)}\big) = w_j w_k\,\frac{1 - e^{-(\lambda_j+\lambda_k)\Delta t}}{\lambda_j+\lambda_k}.
+                    $$
+                    In practice one forms the \(M \times M\) covariance matrix of \(\eta\), computes its Cholesky factor \(L\), draws \(z \sim \mathcal{N}(0,I_M)\), sets \(\eta = L z\), then updates each \(X^{(k)}\) and sets \(Y_{i} = \sum_k w_k X^{(k)}_{i}\). For \(H \in (0,\tfrac{1}{2})\), nodes \(\lambda_k\) are typically log-spaced and weights scale like \(w_k \propto \lambda_k^{-(H+1/2)}\) (normalized) as a heuristic Laplace-domain quadrature; larger \(M\) tightens the match to a target fractional covariance, and in applications \(w_k\) may be calibrated to market smiles.
+                </p>
+                <h3>General Recipe</h3>
+                <ol>
+                    <li>Choose Hurst parameter \(H \in (0,1)\) (rough regimes use \(H &lt; \tfrac{1}{2}\)) and the number of OU factors \(M\).</li>
+                    <li>Define the time grid \( \{t_i\}_{i=0}^n \) with uniform spacing \(\Delta t\).</li>
+                    <li>Select mean-reversion rates \(\lambda_1,\ldots,\lambda_M\) (e.g. log-spaced on \([2/T, 400/T]\)) and weights \(w_k \propto \lambda_k^{-(H+1/2)}\) with \(\sum_k w_k = 1\).</li>
+                    <li>Build the innovation covariance \(\mathrm{Cov}(\eta^{(j)},\eta^{(k)})\) for step \(\Delta t\) and decompose it with Cholesky: \(\Sigma = L L^\top\).</li>
+                    <li>For each path and each time step: draw \(z \sim \mathcal{N}(0,I_M)\), \(\eta = L z\), update \(X^{(k)} \leftarrow e^{-\lambda_k \Delta t} X^{(k)} + \eta^{(k)}\), then \(Y \leftarrow \sum_k w_k X^{(k)}\).</li>
+                </ol>
+                <h3>Python Implementation</h3>
+                <pre><code class="language-python">import numpy as np
+
+def laplace_ou_weights(M, H, T=1.0):
+    """Log-spaced rates lambda_k and weights w_k propto lambda_k^{-(H+1/2)}."""
+    lam = np.logspace(np.log10(2.0 / T), np.log10(400.0 / T), M)
+    nu = H + 0.5
+    w = lam ** (-nu)
+    w /= w.sum()
+    return lam, w
+
+def ou_innovation_cov(lam, w, dt):
+    M = len(lam)
+    S = np.zeros((M, M))
+    for j in range(M):
+        for k in range(M):
+            s = lam[j] + lam[k]
+            S[j, k] = w[j] * w[k] * (1.0 - np.exp(-s * dt)) / s if s > 1e-14 else w[j] * w[k] * dt
+    return S
+
+def markov_lift_ou_paths(steps, paths, H, M, T=1.0, rng=None):
+    rng = rng or np.random.default_rng()
+    dt = T / (steps - 1)
+    lam, w = laplace_ou_weights(M, H, T)
+    L = np.linalg.cholesky(ou_innovation_cov(lam, w, dt) + 1e-12 * np.eye(M))
+    a = np.exp(-lam * dt)
+    X = np.zeros(M)
+    Y = np.zeros((paths, steps))
+    for p in range(paths):
+        X[:] = 0.0
+        for n in range(steps - 1):
+            eta = L @ rng.standard_normal(M)
+            X = a * X + eta
+            Y[p, n + 1] = np.dot(w, X)
+    return Y, lam, w
+
+# When comparing to fBM, scale each time column so Var(Y(t_i)) matches t_i^{2H}
+# (raw lift uses \\sum w_k=1 and is far smaller than fractional Brownian motion).
+</code></pre>
+                <p>
+                    <b>Summary:</b> This approach yields a Gaussian Markov chain in the lifted state \(Z_n\) whose linear functional \(Y_n\) approximates fractional / rough covariance when \((\lambda_k,w_k)\) are chosen in the Laplace domain, enabling efficient simulation and filtering for rough-volatility-style models without full-path fBM Cholesky at every step.
+                </p>
+            </div>
+            <div id="simulation" class="tab-content">
+                <h2>Simulation with Markov Lift</h2>
+                <div style="max-width:900px;margin:0 auto;">
+                    <div style="display:flex;align-items:center;gap:1.5rem;margin-bottom:2rem;">
+                        <label for="sim-method" style="font-weight:600;">Method:</label>
+                        <select id="sim-method" style="font-size:1.1rem;padding:0.4em 1em;border-radius:8px;border:1px solid var(--gray-300);" disabled>
+                            <option value="discrete">Markovian Lifting</option>
+                        </select>
+                    </div>
+                    <div id="sim-inputs" style="display:flex;flex-wrap:wrap;gap:2rem;justify-content:center;margin-bottom:2.5rem;"></div>
+                    <div style="display:flex;flex-wrap:wrap;gap:2rem;justify-content:center;align-items:flex-start;">
+                        <div style="flex:1 1 350px;min-width:320px;max-width:420px;text-align:center;display:flex;flex-direction:column;align-items:center;">
+                            <h3>Sample Paths</h3>
+                            <div id="sim-plot" style="background:var(--gray-100);border-radius:12px;height:260px;width:100%;max-width:400px;box-shadow:var(--shadow-sm);margin-bottom:1.5rem;"></div>
+                        </div>
+                        <div style="flex:1 1 350px;min-width:320px;max-width:420px;text-align:center;display:flex;flex-direction:column;align-items:center;">
+                            <h3>Covariance</h3>
+                            <div id="sim-rmse" style="margin-bottom:0.35rem;font-weight:600;color:var(--primary-color);"></div>
+                            <p id="sim-rmse-note" style="font-size:0.82rem;color:var(--gray-600);max-width:420px;margin:0 auto 0.75rem auto;line-height:1.35;"></p>
+                            <div id="sim-heatmap" style="background:var(--gray-100);border-radius:12px;height:260px;width:100%;max-width:400px;box-shadow:var(--shadow-sm);margin-bottom:1.5rem;"></div>
+                        </div>
+                    </div>
+                    <div style="display:flex;flex-wrap:wrap;gap:2rem;justify-content:center;align-items:flex-start;margin-top:1.5rem;">
+                        <div style="flex:1 1 350px;min-width:320px;max-width:420px;text-align:center;display:flex;flex-direction:column;align-items:center;">
+                            <h3>Covariance Error</h3>
+                            <div id="sim-lagcov" style="background:var(--gray-100);border-radius:12px;height:220px;width:100%;max-width:400px;box-shadow:var(--shadow-sm);margin-bottom:1.5rem;"></div>
+                        </div>
+                        <div style="flex:1 1 350px;min-width:320px;max-width:420px;text-align:center;display:flex;flex-direction:column;align-items:center;">
+                            <h3>Theoretical Covariance</h3>
+                            <div id="sim-heatmap-theory" style="background:var(--gray-100);border-radius:12px;height:220px;width:100%;max-width:400px;box-shadow:var(--shadow-sm);margin-bottom:1.5rem;"></div>
+                        </div>
+                    </div>
+                    <div style="margin-top:2.5rem;">
+                        <h3>Markovian Lifting Equations</h3>
+                        <div id="sim-equation" style="font-size:1.2rem;margin-top:1rem;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="article-reference" style="background: var(--gray-50); padding: 2.5rem 0 1.5rem 0;">
+        <div class="container" style="max-width: 900px; margin: 0 auto;">
+            <h2 style="margin-bottom: 1.2rem; color: var(--primary-color); font-size: 2rem; font-weight: 600; text-align: left;">Relevant Articles</h2>
+            <div class="article-card" style="box-shadow: var(--shadow-sm); border-radius: 14px; background: #fff; padding: 2rem 2.2rem; display: flex; flex-direction: column; align-items: flex-start; gap: 0.7rem; margin-bottom: 0; width: 100%; max-width: 100%;">
+                <div class="article-meta" style="font-size: 1rem; color: var(--gray-400); margin-bottom: 0.2rem;">
+                    <span class="article-author" style="color: var(--primary-color); font-weight: 600;">Roman Paolucci</span>
+                    <span class="article-affil" style="margin-left: 1.2em;">Quant Guild</span>
+                </div>
+                <div class="article-meta" style="font-size: 1rem; color: var(--gray-400); margin-bottom: 0.2rem;">
+                    <span class="article-date">June 30, 2025</span>
+                </div>
+                <h3 class="article-title" style="margin: 0 0 0.3em 0; font-size: 1.35rem; color: var(--primary-color); font-weight: 600;">Recipes for simulating stochastic processes</h3>
+                <p class="article-abstract" style="margin: 0 0 0.7em 0; color: var(--gray-600); font-size: 1.08rem;">
+                    This note discusses the necessary steps to simulate a stochastic process with a desired covariance structure. In this context, I outline the Karhunen–Loéve theorem and provide intuition and general recipes to decompose a stochastic process by establishing the integral eigenvalue problem (continuous-time) or, equivalently, the covariance matrix diagonalization problem (discrete-time). I then apply these general recipes to Brownian motion, Brownian bridge, and fractional Brownian motion to numerically simulate paths.
+                </p>
+                <div class="article-keywords" style="font-size: 0.98rem; color: var(--gray-500); margin-bottom: 0.5em;">
+                    <b>Keywords:</b> Brownian motion, Brownian bridge, Stochastic processes, Simulation
+                </div>
+                <a href="https://papers.ssrn.com/sol3/papers.cfm?abstract_id=5332011" class="btn btn-secondary article-link" target="_blank" rel="noopener" style="margin-top: 0.2em;">View on SSRN</a>
+                <div class="article-citation" style="font-size: 0.95rem; color: var(--gray-400); margin-top: 1em;">
+                    <b>Suggested Citation:</b><br>
+                    Paolucci, Roman, <i>Recipes for simulating stochastic processes</i> (June 30, 2025). Available at SSRN: <a href="https://papers.ssrn.com/sol3/papers.cfm?abstract_id=5332011" target="_blank" rel="noopener">https://papers.ssrn.com/sol3/papers.cfm?abstract_id=5332011</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <div class="footer-logo">
+                        <div class="logo-symbol">𝒢</div>
+                        <span>The Gaussian Cookbook</span>
+                    </div>
+                    <p>Mastering Gaussian processes through practical recipes and interactive learning with Chef Roman Paolucci.</p>
+                    <hr style="margin: 0.7em 0 0.5em 0; border: none; border-top: 1.5px solid var(--gray-200); width: 90%;">
+                    <div class="footer-subscriber-block">
+                        <span class="footer-subscriber-label">Subscribers</span>
+                        <div class="footer-subscriber-wrap">
+                            <iframe class="footer-subscriber-iframe" title="YouTube live subscriber count" width="320" height="90" frameborder="0" src="https://socialcounts.org/youtube-live-subscriber-count/UCW1svfGxG4ADnbc1HCH6dqA/embed" allowfullscreen></iframe>
+                            <a href="https://youtube.com/@quantguild" target="_blank" rel="noopener noreferrer" class="footer-subscriber-hit" aria-label="Quant Guild on YouTube"></a>
+                        </div>
+                    </div>
+                </div>
+                <div class="footer-section">
+                    <h4>Quick Links</h4>
+                    <ul>
+                        <li><a href="https://github.com/romanmichaelpaolucci/GaussianCookbook" target="_blank"><i class="fab fa-github" style="color: #fff;"></i> GitHub</a></li>
+                        <li><a href="https://youtube.com/@quantguild" target="_blank"><i class="fab fa-youtube" style="color: #fff;"></i> YouTube</a></li>
+                        <li><a href="https://papers.ssrn.com/sol3/cf_dev/AbsByAuth.cfm?per_id=4862816" target="_blank"><i class="fas fa-scroll" style="color: #fff;"></i> SSRN</a></li>
+                        <li><a href="https://medium.com/@quantguild" target="_blank"><i class="fab fa-medium" style="color: #fff;"></i> Medium</a></li>
+                        <li><a href="https://discord.com/invite/MJ4FU2c6c3" target="_blank"><i class="fab fa-discord" style="color: #fff;"></i> Discord</a></li>
+                        <li><a href="https://www.linkedin.com/in/rmp99/" target="_blank"><i class="fab fa-linkedin" style="color: #fff;"></i> LinkedIn</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Recipes</h4>
+                    <ul>
+                        <li><a href="brownian-motion.html">Brownian Motion</a></li>
+                        <li><a href="brownian-bridge.html">Brownian Bridge</a></li>
+                        <li><a href="fractional-brownian-motion.html">Fractional Brownian Motion</a></li>
+                        <li><a href="volterra_process.html">Volterra Process</a></li>
+                        <li><a href="markovian-lifting.html">Markovian Lifting</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 Quant Guild. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
+            this.classList.add('active');
+            document.getElementById(this.dataset.tab).classList.add('active');
+        });
+    });
+    </script>
+
+    <script>
+    if (window.MathJax) {
+      MathJax.typesetPromise();
+    }
+    </script>
+
+    <script src="https://cdn.plot.ly/plotly-2.26.0.min.js"></script>
+    <script>
+    const simInputs = document.getElementById('sim-inputs');
+    const simEquation = document.getElementById('sim-equation');
+
+    function createSlider(id, label, min, max, step, value) {
+        return `<div style='flex:1 1 180px;max-width:220px;'>
+            <label for='${id}' style='font-weight:600;'>${label}: <span id='${id}-val'>${value}</span></label>
+            <input type='range' id='${id}' min='${min}' max='${max}' step='${step}' value='${value}' style='width:100%;'>
+        </div>`;
+    }
+
+    function randn() {
+        let u = 0, v = 0;
+        while (u === 0) u = Math.random();
+        while (v === 0) v = Math.random();
+        return Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
+    }
+
+    function laplaceOUWeights(M, H, T) {
+        const logMin = Math.log(2.0 / T);
+        const logMax = Math.log(400.0 / T);
+        const lambdas = [];
+        const weights = [];
+        const nu = H + 0.5;
+        let sum = 0;
+        for (let k = 0; k < M; k++) {
+            const u = M === 1 ? 0.5 : k / (M - 1);
+            const lk = Math.exp(logMin + u * (logMax - logMin));
+            lambdas.push(lk);
+            const w = Math.pow(lk, -nu);
+            weights.push(w);
+            sum += w;
+        }
+        for (let k = 0; k < M; k++) weights[k] /= sum;
+        return { lambdas, weights };
+    }
+
+    function ouInnovationCov(lambdas, weights, dt) {
+        const M = lambdas.length;
+        const S = Array.from({ length: M }, () => Array(M).fill(0));
+        for (let j = 0; j < M; j++) {
+            for (let k = 0; k < M; k++) {
+                const s = lambdas[j] + lambdas[k];
+                S[j][k] = s > 1e-14
+                    ? weights[j] * weights[k] * (1 - Math.exp(-s * dt)) / s
+                    : weights[j] * weights[k] * dt;
+            }
+        }
+        return S;
+    }
+
+    function cholesky(A) {
+        const n = A.length;
+        const L = Array.from({ length: n }, () => Array(n).fill(0));
+        for (let i = 0; i < n; i++) {
+            for (let j = 0; j <= i; j++) {
+                let sum = 0;
+                for (let k = 0; k < j; k++) sum += L[i][k] * L[j][k];
+                if (i === j) {
+                    const v = A[i][i] - sum;
+                    L[i][j] = Math.sqrt(Math.max(v, 1e-18));
+                } else {
+                    L[i][j] = (A[i][j] - sum) / (L[j][j] || 1e-10);
+                }
+            }
+        }
+        return L;
+    }
+
+    function matVec(L, z) {
+        const n = L.length;
+        const out = Array(n).fill(0);
+        for (let i = 0; i < n; i++) {
+            for (let k = 0; k <= i; k++) out[i] += L[i][k] * z[k];
+        }
+        return out;
+    }
+
+    /** Var(Y_t) for continuous-time lift: Y = sum_k w_k X^(k), X from shared W (matches discrete model in dt->0 limit). */
+    function theoreticalVarYAtTime(tau, lambdas, weights) {
+        if (tau <= 1e-18) return 0;
+        const M = lambdas.length;
+        let v = 0;
+        for (let j = 0; j < M; j++) {
+            for (let k = 0; k < M; k++) {
+                const s = lambdas[j] + lambdas[k];
+                const c = s > 1e-14 ? (1 - Math.exp(-s * tau)) / s : tau;
+                v += weights[j] * weights[j] * weights[k] * weights[k] * c;
+            }
+        }
+        return v;
+    }
+
+    /**
+     * Scale each Y(t_i) so marginal variance matches fBM Var(B_H(t_i)) = t_i^{2H}.
+     * Raw OU-lift paths use sum-normalized w_k and are far smaller than fBM; without this,
+     * covariance heatmaps and RMSE vs fBM are misleading.
+     */
+    function scaleYToMatchFBMMarginals(Y, t, H, lambdas, weights) {
+        const steps = t.length;
+        return Y.map(row => {
+            const copy = row.slice();
+            for (let i = 0; i < steps; i++) {
+                const ti = t[i];
+                if (ti <= 1e-18) continue;
+                const vMod = theoreticalVarYAtTime(ti, lambdas, weights);
+                const vTgt = Math.pow(ti, 2 * H);
+                if (vMod > 1e-20) {
+                    copy[i] *= Math.sqrt(vTgt / vMod);
+                }
+            }
+            return copy;
+        });
+    }
+
+    function simulateLift(steps, paths, H, M) {
+        const T = 1;
+        const dt = T / (steps - 1);
+        const t = Array.from({ length: steps }, (_, i) => T * i / (steps - 1));
+        const { lambdas, weights } = laplaceOUWeights(M, H, T);
+        const Sigma = ouInnovationCov(lambdas, weights, dt);
+        for (let i = 0; i < M; i++) Sigma[i][i] += 1e-12;
+        const L = cholesky(Sigma);
+        const a = lambdas.map(lk => Math.exp(-lk * dt));
+
+        const Y = Array.from({ length: paths }, () => Array(steps).fill(0));
+        const X = Array.from({ length: paths }, () => Array.from({ length: M }, () => 0));
+
+        for (let p = 0; p < paths; p++) {
+            for (let n = 0; n < steps - 1; n++) {
+                const z = Array.from({ length: M }, () => randn());
+                const eta = matVec(L, z);
+                for (let k = 0; k < M; k++) {
+                    X[p][k] = a[k] * X[p][k] + eta[k];
+                }
+                let y = 0;
+                for (let k = 0; k < M; k++) y += weights[k] * X[p][k];
+                Y[p][n + 1] = y;
+            }
+        }
+
+        return { Y, t, lambdas, weights };
+    }
+
+    function updateEquation(H, M) {
+        simEquation.innerHTML = `$$
+            K(s, t) = \\frac{1}{2} \\left( s^{2H} + t^{2H} - |s-t|^{2H} \\right)
+        $$
+        <p style="text-align:left;font-size:0.95rem;color:var(--gray-600);margin:0.5rem 0 0.75rem 0;">Target fractional Brownian covariance (same as the fBM recipe). The Laplace OU lift approximates this with a Markovian stack driven by one Brownian motion:</p>
+        $$
+            dX^{(k)}_t = -\\lambda_k X^{(k)}_t\\,dt + w_k\\,dW_t, \\qquad
+            Y_t = \\sum_{k=1}^{${M}} w_k X^{(k)}_t, \\qquad
+            w_k \\propto \\lambda_k^{-(H+1/2)}.
+        $$
+        <pre id="sim-python" style="margin-top:1.5rem;"><code class="language-python">import numpy as np
+
+def laplace_ou_weights(M, H, T=1.0):
+    lam = np.logspace(np.log10(2.0 / T), np.log10(400.0 / T), M)
+    w = lam ** (-(H + 0.5))
+    w /= w.sum()
+    return lam, w
+
+def ou_innovation_cov(lam, w, dt):
+    M = len(lam)
+    S = np.zeros((M, M))
+    for j in range(M):
+        for k in range(M):
+            s = lam[j] + lam[k]
+            S[j, k] = w[j] * w[k] * (1 - np.exp(-s * dt)) / s if s > 1e-14 else w[j] * w[k] * dt
+    return S
+
+# Discrete OU lift (shared W); Y approximates fBM with Hurst H
+M, H, steps, paths = ${M}, ${H.toFixed(3)}, 200, 5
+dt = 1.0 / (steps - 1)
+lam, w = laplace_ou_weights(M, H)
+L = np.linalg.cholesky(ou_innovation_cov(lam, w, dt) + 1e-12 * np.eye(M))
+a = np.exp(-lam * dt)</code></pre>`;
+        if (window.MathJax) MathJax.typesetPromise([simEquation]);
+        if (window.hljs) setTimeout(() => hljs.highlightAll(), 0);
+    }
+
+    function updateSimInputs() {
+        let html = '';
+        html += createSlider('sim-steps', 'Time Steps', 50, 500, 10, 200);
+        html += createSlider('sim-paths', 'Sample Paths', 1, 100, 1, 5);
+        html += createSlider('sim-hurst', 'Hurst H', 0.1, 0.9, 0.01, 0.35);
+        html += createSlider('sim-m', 'OU factors M', 3, 24, 1, 10);
+        simInputs.innerHTML = html;
+        ['sim-steps', 'sim-paths', 'sim-hurst', 'sim-m'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                el.addEventListener('input', () => {
+                    document.getElementById(id + '-val').textContent = el.value;
+                    runSimulation();
+                });
+            }
+        });
+    }
+
+    function plotSamplePaths(paths, t) {
+        const data = paths.map((p, i) => ({
+            x: t,
+            y: p,
+            mode: 'lines',
+            name: `Path ${i + 1}`,
+            line: { width: 2 }
+        }));
+        Plotly.newPlot('sim-plot', data, {
+            margin: { t: 20, l: 40, r: 10, b: 40 },
+            xaxis: { title: 't' },
+            yaxis: { title: 'B_H(t)' },
+            showlegend: false,
+            plot_bgcolor: 'rgba(0,0,0,0)',
+            paper_bgcolor: 'rgba(0,0,0,0)'
+        }, { displayModeBar: false, responsive: true });
+    }
+
+    /** Same layout as fractional-brownian-motion.html: empirical vs fBM theory, lag abs error */
+    function plotCovarianceEmpirical(Bt, t, H) {
+        const paths = Bt.length;
+        const steps = Bt[0].length;
+        const means = Array(steps).fill(0);
+        for (let j = 0; j < steps; ++j) {
+            for (let i = 0; i < paths; ++i) means[j] += Bt[i][j];
+            means[j] /= paths;
+        }
+        const cov = Array.from({ length: steps }, () => Array(steps).fill(0));
+        for (let i = 0; i < steps; ++i) {
+            for (let j = 0; j < steps; ++j) {
+                let sum = 0;
+                for (let k = 0; k < paths; ++k) {
+                    sum += (Bt[k][i] - means[i]) * (Bt[k][j] - means[j]);
+                }
+                cov[i][j] = sum / (paths - 1);
+            }
+        }
+        const cov_theory = Array.from({ length: steps }, (_, i) =>
+            Array.from({ length: steps }, (_, j) =>
+                0.5 * (Math.pow(t[i], 2 * H) + Math.pow(t[j], 2 * H) - Math.pow(Math.abs(t[i] - t[j]), 2 * H))));
+        let rmse = 0;
+        let count = 0;
+        for (let i = 0; i < steps; ++i) {
+            for (let j = 0; j < steps; ++j) {
+                const diff = cov[i][j] - cov_theory[i][j];
+                rmse += diff * diff;
+                count++;
+            }
+        }
+        rmse = Math.sqrt(rmse / count);
+        document.getElementById('sim-rmse').textContent = `RMSE: ${rmse.toExponential(2)}`;
+        const note = document.getElementById('sim-rmse-note');
+        if (note) {
+            note.textContent = 'Sample paths are scaled so the marginal variance of Y(t) matches fBM, Var(B_H(t)) = t^{2H}, at each grid time. The OU Laplace lift still only approximates the full fBM covariance off the diagonal—larger M and calibrated weights tighten the match.';
+        }
+        Plotly.newPlot('sim-heatmap', [{
+            z: cov,
+            type: 'heatmap',
+            colorscale: 'Viridis',
+            colorbar: { title: 'Cov' }
+        }], {
+            margin: { t: 20, l: 40, r: 10, b: 40 },
+            xaxis: { title: 't' },
+            yaxis: { title: 't' },
+            plot_bgcolor: 'rgba(0,0,0,0)',
+            paper_bgcolor: 'rgba(0,0,0,0)'
+        }, { displayModeBar: false, responsive: true });
+        Plotly.newPlot('sim-heatmap-theory', [{
+            z: cov_theory,
+            type: 'heatmap',
+            colorscale: 'Viridis',
+            colorbar: { title: 'Cov' }
+        }], {
+            margin: { t: 20, l: 40, r: 10, b: 40 },
+            xaxis: { title: 't' },
+            yaxis: { title: 't' },
+            plot_bgcolor: 'rgba(0,0,0,0)',
+            paper_bgcolor: 'rgba(0,0,0,0)'
+        }, { displayModeBar: false, responsive: true });
+        const lagEmp = [];
+        const lagTheory = [];
+        const lagErr = [];
+        for (let lag = 0; lag < steps; ++lag) {
+            let empSum = 0;
+            let empCount = 0;
+            let thSum = 0;
+            let thCount = 0;
+            for (let i = 0; i < steps - lag; ++i) {
+                empSum += cov[i][i + lag];
+                empCount++;
+                thSum += cov_theory[i][i + lag];
+                thCount++;
+            }
+            lagEmp.push(empSum / empCount);
+            lagTheory.push(thSum / thCount);
+            lagErr.push(Math.abs(lagEmp[lag] - lagTheory[lag]));
+        }
+        Plotly.newPlot('sim-lagcov', [
+            { x: Array.from({ length: steps }, (_, i) => i), y: lagErr, mode: 'lines+markers', name: 'Abs Error', line: { color: '#ef4444', width: 2, dash: 'dash' } }
+        ], {
+            margin: { t: 20, l: 40, r: 10, b: 40 },
+            xaxis: { title: 'Lag' },
+            yaxis: { title: 'Covariance Error' },
+            legend: { orientation: 'h', y: -0.2 },
+            plot_bgcolor: 'rgba(0,0,0,0)',
+            paper_bgcolor: 'rgba(0,0,0,0)'
+        }, { displayModeBar: false, responsive: true });
+    }
+
+    function runSimulation() {
+        const steps = parseInt(document.getElementById('sim-steps').value, 10);
+        const paths = parseInt(document.getElementById('sim-paths').value, 10);
+        const H = parseFloat(document.getElementById('sim-hurst').value);
+        const M = parseInt(document.getElementById('sim-m').value, 10);
+        const { Y: Yraw, t, lambdas, weights } = simulateLift(steps, paths, H, M);
+        const Y = scaleYToMatchFBMMarginals(Yraw, t, H, lambdas, weights);
+        updateEquation(H, M);
+        plotSamplePaths(Y, t);
+        plotCovarianceEmpirical(Y, t, H);
+    }
+
+    updateSimInputs();
+    runSimulation();
+    </script>
+</body>
+</html>

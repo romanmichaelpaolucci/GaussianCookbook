@@ -65,6 +65,18 @@
     <!-- Tabs Section -->
     <section class="resources">
         <div class="container">
+            <div style="max-width: 800px; margin: 0 auto 2.25rem auto;">
+                <div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 12px; box-shadow: var(--shadow-md, 0 4px 24px rgba(0,0,0,0.08)); background: var(--gray-900, #111827);">
+                    <iframe
+                        style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0;"
+                        src="https://www.youtube.com/embed/jiAdz9W4aDI"
+                        title="Brownian motion — Quant Guild"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                        allowfullscreen
+                        loading="lazy"
+                        referrerpolicy="strict-origin-when-cross-origin"></iframe>
+                </div>
+            </div>
             <h2 style="margin-bottom: 2rem; color: var(--primary-color); font-size: 2rem; font-weight: 600; text-align: center;">Simulating Brownian Motion</h2>
             <div class="tabs">
                 <button class="tab-btn active" data-tab="continuous">Continuous-time</button>
@@ -201,7 +213,7 @@ def brownian_motion_dtr(steps=100, paths=1, T=1):
             <div class="article-card" style="box-shadow: var(--shadow-sm); border-radius: 14px; background: #fff; padding: 2rem 2.2rem; display: flex; flex-direction: column; align-items: flex-start; gap: 0.7rem; margin-bottom: 0; width: 100%; max-width: 100%;">
                 <div class="article-meta" style="font-size: 1rem; color: var(--gray-400); margin-bottom: 0.2rem;">
                     <span class="article-author" style="color: var(--primary-color); font-weight: 600;">Roman Paolucci</span>
-                    <span class="article-affil" style="margin-left: 1.2em;">Columbia University</span>
+                    <span class="article-affil" style="margin-left: 1.2em;">Quant Guild</span>
                 </div>
                 <div class="article-meta" style="font-size: 1rem; color: var(--gray-400); margin-bottom: 0.2rem;">
                     <span class="article-date">June 30, 2025</span>
@@ -233,12 +245,19 @@ def brownian_motion_dtr(steps=100, paths=1, T=1):
                     </div>
                     <p>Mastering Gaussian processes through practical recipes and interactive learning with Chef Roman Paolucci.</p>
                     <hr style="margin: 0.7em 0 0.5em 0; border: none; border-top: 1.5px solid var(--gray-200); width: 90%;">
-                    <div style="margin-top: 0.2em; margin-bottom: 0.5em;">
-                        <span style="font-size: 1.01rem; font-weight: 500; color: var(--primary-color);">Subscribers</span><br>
-                        <div style="margin-top: 1em; text-align: left; position: relative; width: 180px; height: 63px;">
-                            <iframe height="90px" frameborder="0" src="https://socialcounts.org/youtube-live-subscriber-count/UCW1svfGxG4ADnbc1HCH6dqA/embed" allowfullscreen="" style="position: relative; z-index: 1; transform: scale(0.65); transform-origin: left top; border-radius: 16px; overflow: hidden;"></iframe>
-                            <a href="https://youtube.com/@quantguild" target="_blank" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 2; display: block;"></a>
-                        </div>
+                    <div class="footer-subscriber-block">
+                        <span class="footer-subscriber-label">Subscribers</span>
+                        <a href="https://www.youtube.com/@quantguild" class="footer-yt-card" target="_blank" rel="noopener noreferrer">
+                            <div class="footer-yt-card__inner">
+                                <img class="footer-yt-card__avatar" src="static/img/roman_image.png" width="56" height="56" alt="">
+                                <div class="footer-yt-card__body">
+                                    <span class="footer-yt-card__name">Roman Paolucci</span>
+                                    <span class="footer-yt-card__count" id="footer-yt-sub-count">73,320</span>
+                                    <span class="footer-yt-card__hint">YouTube · @quantguild</span>
+                                </div>
+                                <span class="footer-yt-card__icon" aria-hidden="true"><i class="fab fa-youtube"></i></span>
+                            </div>
+                        </a>
                     </div>
                 </div>
                 <div class="footer-section">
@@ -258,6 +277,8 @@ def brownian_motion_dtr(steps=100, paths=1, T=1):
                         <li><a href="brownian-motion.html">Brownian Motion</a></li>
                         <li><a href="brownian-bridge.html">Brownian Bridge</a></li>
                         <li><a href="fractional-brownian-motion.html">Fractional Brownian Motion</a></li>
+                        <li><a href="volterra_process.html">Volterra Process</a></li>
+                        <li><a href="markovian-lifting.html">Markovian Lifting</a></li>
                     </ul>
                 </div>
             </div>

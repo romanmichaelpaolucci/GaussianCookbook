@@ -415,17 +415,26 @@ class GaussianCookbook {
         }
     }
 
-    // MathJax setup
+    // MathJax setup (v3 typesetPromise; v2 Hub fallback)
     setupMathJax() {
-        // Wait for MathJax to load
-        if (typeof MathJax !== 'undefined') {
-            MathJax.Hub.Queue(['Typeset', MathJax.Hub]);
-        } else {
-            // Fallback for when MathJax is not loaded
-            setTimeout(() => {
-                this.setupMathJax();
-            }, 100);
-        }
+        const arc = document.querySelector('.hero-math-arc');
+        const typesetHeroArc = () => {
+            if (!arc) return true;
+            if (typeof MathJax === 'undefined') return false;
+            if (MathJax.typesetPromise) {
+                MathJax.typesetPromise([arc]).catch(() => {});
+                return true;
+            }
+            if (MathJax.Hub) {
+                MathJax.Hub.Queue(['Typeset', MathJax.Hub, [arc]]);
+                return true;
+            }
+            return false;
+        };
+
+        if (typesetHeroArc()) return;
+
+        setTimeout(() => this.setupMathJax(), 100);
     }
 }
 
